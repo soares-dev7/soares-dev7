@@ -1,16 +1,24 @@
-## Hi there 👋
+# Olá, eu sou o Kauan 👋
 
-<!--
-**soares-dev7/soares-dev7** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+🎓 Estudante de Tecnologia da Informação  
+💻 Técnico de TI  
+📚 Estudando Python, Java e SQL  
 
-Here are some ideas to get you started:
+##  Sobre mim
+Sou apaixonado por tecnologia e estou em constante aprendizado na área de desenvolvimento e infraestrutura. Atualmente estudo lógica de programação, modelagem de dados e desenvolvimento de aplicações desktop.
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+##  Tecnologias que estou estudando
+- Python
+- Java
+- SQL
+- Arduino
+- Blender (Modelagem 3D)
+
+## 📌 Projetos
+🔹 Game educacional em PyGame (em desenvolvimento)  
+🔹 Projetos com Arduino  
+🔹 Exercícios de lógica de programação
+
+## 📫 Contact
+- LinkedIn: https://www.linkedin.com/in/kauan-soares-183638355
+- GitHub: https://github.com/soaresdev
