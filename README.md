@@ -1,179 +1,230 @@
 <div align="center">
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0D1117,100:2563EB&height=180&section=header&text=Kauan%20Soares&fontSize=42&fontColor=FFFFFF&animation=fadeIn&fontAlignY=35" width="100%"/>
 
-👋 Olá, eu sou o Kauan!
+# Hey, I'm Kauan Soares 👋
 
-💻 Técnico de TI | 🎓 Estudante de Tecnologia da Informação
+### IT Technician • Networks & Infrastructure • Software Development
 
-<p>
-  <a href="https://github.com/soares-dev7">
-    <img src="https://img.shields.io/badge/GitHub-soares--dev7-181717?style=for-the-badge&logo=github&logoColor=white"/>
-  </a>
-  <a href="https://www.linkedin.com/in/kauan-soares-183638355">
-    <img src="https://img.shields.io/badge/LinkedIn-Kauan%20Soares-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
-  </a>
-</p>
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=58A6FF&center=true&vCenter=true&width=650&lines=IT+Technician+%7C+4%2B+Years+of+Experience;Networks+%26+Infrastructure;Java+%26+Spring+Boot;Co-Founder+%40+Nexos;From+Hardware+to+Software+%F0%9F%9A%80" />
+
+<br>
+
+<a href="https://www.linkedin.com/in/kauan-soares-183638355">
+  <img src="https://img.shields.io/badge/LinkedIn-Kauan%20Soares-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
+</a>
+
+<a href="https://github.com/soares-dev7">
+  <img src="https://img.shields.io/badge/GitHub-soares--dev7-181717?style=for-the-badge&logo=github&logoColor=white"/>
+</a>
+
 </div>
 
-⸻
+---
 
-🧑‍💻 Sobre mim
+## 👨‍💻 About Me
 
-Sou Técnico de TI e estudante de Tecnologia da Informação, com experiência prática em suporte técnico, manutenção e diagnóstico de computadores e dispositivos.
+```java
+public class Kauan {
 
-Atualmente estou ampliando meus conhecimentos em infraestrutura, redes, desenvolvimento de software e banco de dados, buscando transformar o que estudo em projetos práticos.
+    String role = "IT Technician";
+    String education = "Information Technology Student";
 
-Tenho interesse em construir soluções, entender como os sistemas funcionam e continuar evoluindo profissionalmente na área de tecnologia.
+    String[] interests = {
+        "IT Infrastructure",
+        "Networking",
+        "Backend Development",
+        "Technology"
+    };
 
-⸻
+    String currentFocus = "Java & Spring Boot";
+    String startup = "Nexos";
+}
+```
 
-🛠️ Tecnologias
+🛠️ **4+ years of hands-on experience** with IT support, hardware, troubleshooting and device repair.
+
+🌐 Experience with **networking and IT infrastructure**, including TCP/IP, DNS, DHCP, routing, switching, Wi-Fi, cabling and network troubleshooting.
+
+☕ Currently focused on **Java and Spring Boot**, expanding my knowledge in backend development and REST APIs.
+
+🚀 **Co-Founder of Nexos**, a B2B technology startup focused on building custom digital solutions for businesses.
+
+🐧 Currently improving my knowledge of **Linux, JavaScript and React**.
+
+---
+
+## 🧰 Languages & Tools
 
 <div align="center">
 
-💻 Desenvolvimento
+### Development
 
-<img src="https://skillicons.dev/icons?i=java,python,spring" />
+<img src="https://skillicons.dev/icons?i=java,spring,python,javascript,react,html,css" />
 
-🗄️ Banco de Dados
+<br><br>
+
+### Database
 
 <img src="https://skillicons.dev/icons?i=mysql" />
 
-🔧 Ferramentas
+<br><br>
 
-<img src="https://skillicons.dev/icons?i=git,github,vscode" />
+### Tools & Environment
 
-🖥️ Sistemas
+<img src="https://skillicons.dev/icons?i=git,github,vscode,idea,postman,windows,linux" />
 
-<img src="https://skillicons.dev/icons?i=windows,linux" />
 </div>
 
-Atualmente também estou trabalhando com SQL Server, principalmente em estudos de banco de dados e no desenvolvimento do Nexos Enterprise.
+---
 
-⸻
-
-🚀 Projetos em destaque
-
-<table>
-<tr>
-<td width="50%">
-
-🏢 Nexos Enterprise
-
-Sistema desenvolvido com foco em uma aplicação real, conectando frontend, backend e banco de dados.
-
-Stack:
-
-React Java Spring Boot SQL Server
-
-<a href="https://github.com/soares-dev7/Nexos-Enterprise">
-<img src="https://img.shields.io/badge/Ver%20Projeto-181717?style=for-the-badge&logo=github"/>
-</a>
-</td>
-<td width="50%">
-
-🎮 ISA
-
-Inteligência, Saber e Aprendizagem
-
-Projeto educacional desenvolvido em Python/Pygame, com exploração, mapas, desafios e sistema de questões.
-
-Stack:
-
-Python Pygame CSV
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-📚 educaDev
-
-Projeto voltado para facilitar a entrada de novas pessoas no mundo da programação, oferecendo uma experiência de aprendizado mais acessível.
-
-Foco:
-
-Programação Educação Tecnologia
-
-</td>
-<td width="50%">
-
-🔨 Projetos acadêmicos
-
-Projetos desenvolvidos durante minha formação envolvendo:
-
-Java Python SQL Lógica Banco de Dados
-
-</td>
-</tr>
-</table>
-
-⸻
-
-📚 Atualmente estudando
+## 🌐 IT & Infrastructure
 
 <div align="center">
-<img src="https://skillicons.dev/icons?i=java,spring,python,git,github" />
+
+<img src="https://img.shields.io/badge/Networking-0A66C2?style=for-the-badge&logo=cisco&logoColor=white"/>
+
+<img src="https://img.shields.io/badge/TCP%2FIP-005571?style=for-the-badge"/>
+
+<img src="https://img.shields.io/badge/DNS-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white"/>
+
+<img src="https://img.shields.io/badge/DHCP-0078D4?style=for-the-badge"/>
+
+<img src="https://img.shields.io/badge/Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white"/>
+
+<img src="https://img.shields.io/badge/Hardware-333333?style=for-the-badge"/>
+
+<img src="https://img.shields.io/badge/Troubleshooting-FF6B35?style=for-the-badge"/>
+
 </div>
+
+### What I work with
+
+- 🖥️ Computer assembly, maintenance and hardware diagnostics
+- 📱 Smartphone diagnostics and technical repair
+- 🔧 Hardware & software troubleshooting
+- 🌐 Network installation, configuration and troubleshooting
+- 📡 Routers, switches, access points and Wi-Fi
+- 🔌 Structured cabling and RJ45
+- 🌍 TCP/IP, IPv4, DNS, DHCP and network addressing
+- 🖨️ Network printers and shared resources
+- 💾 Backup, system installation and configuration
+- 🪟 Windows environments and technical support
+- 🖥️ Windows Server & Active Directory fundamentals
+- 🐧 Linux — currently improving
+
+---
+
+# 🚀 Building Nexos
+
+<div align="center">
+
+### Turning business problems into digital solutions.
+
+</div>
+
+I'm **Co-Founder of Nexos**, a B2B technology startup built together with **Enzo Modesto**.
+
+Our goal is to develop customized digital solutions based on each client's real business needs.
+
+### What we're building
+
+🌐 Websites  
+🎯 Landing Pages  
+🛒 E-commerce  
+📊 Custom CRM Systems  
+⚙️ Tailored Web Applications
+
+### Nexos Stack
+
+<div align="center">
+
+<img src="https://skillicons.dev/icons?i=java,spring,mysql,react,javascript,html,css,git" />
+
+</div>
+
+---
+
+## 🧪 Projects
+
+### 🧮 IAC Calculator
+
+Desktop application developed with **Python and Tkinter**, applying programming logic, object-oriented programming and graphical interfaces.
+
+`Python` `Tkinter` `OOP`
+
+---
+
+### 🎮 ISA — Intelligence, Knowledge & Learning
+
+Educational project developed with **Python and Pygame**, combining programming with interactive learning experiences.
+
+`Python` `Pygame`
+
+---
+
+### 🚀 Nexos
+
+Building digital solutions for businesses through our B2B technology startup.
+
+`Java` `Spring Boot` `MySQL` `React` `JavaScript` `HTML5` `CSS3`
+
+---
+
+## 📊 GitHub Stats
+
+<div align="center">
+
+<img height="170" src="https://github-readme-stats.vercel.app/api?username=soares-dev7&show_icons=true&theme=tokyonight&hide_border=true&include_all_commits=true"/>
+
+<img height="170" src="https://github-readme-stats.vercel.app/api/top-langs/?username=soares-dev7&layout=compact&theme=tokyonight&hide_border=true"/>
+
+</div>
+
 <br>
 
-* ☕ Java e Programação Orientada a Objetos
-* 🌱 Spring Boot e desenvolvimento backend
-* 🗄️ SQL e Banco de Dados
-* 🌐 Redes e Infraestrutura
-* 🐍 Python
-* 🔧 Git e GitHub
-* 💻 Desenvolvimento de projetos práticos
+<div align="center">
 
-⸻
+<img src="https://github-readme-activity-graph.vercel.app/graph?username=soares-dev7&theme=tokyo-night&hide_border=true" width="95%"/>
 
-🖥️ Experiência
+</div>
 
-Minha experiência profissional em assistência técnica me proporcionou contato direto com:
+---
 
-* Diagnóstico e manutenção de computadores
-* Identificação e solução de problemas de hardware
-* Instalação e configuração de sistemas e softwares
-* Suporte técnico
-* Atendimento e resolução de problemas
-* Configuração de dispositivos
-
-Essa experiência complementa meus estudos e fortalece minha base para atuar em Suporte de TI, Infraestrutura e áreas relacionadas.
-
-⸻
-
-📊 GitHub
+## 🌱 Currently Learning
 
 <div align="center">
-<img src="https://github-readme-stats.vercel.app/api?username=soares-dev7&show_icons=true&hide_border=true&theme=tokyonight&rank_icon=github" height="170"/>
-<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=soares-dev7&layout=compact&hide_border=true&theme=tokyonight" height="170"/>
+
+<img src="https://skillicons.dev/icons?i=spring,javascript,react,linux" />
+
 </div>
+
 <br>
+
 <div align="center">
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=soares-dev7&theme=tokyonight&hide_border=true" />
+
+**Spring Boot** • **JavaScript** • **React** • **Linux**
+
 </div>
 
-⸻
+---
 
-🎯 Objetivo
-
-Continuar evoluindo na área de tecnologia, unindo minha experiência prática em suporte e manutenção com conhecimentos em infraestrutura, redes, desenvolvimento e banco de dados.
-
-Busco oportunidades onde eu possa contribuir, aprender e crescer profissionalmente na área de TI.
-
-⸻
-
-📫 Contato
+## 🤝 Let's Connect
 
 <div align="center">
+
+I'm always open to connecting with people in **IT, Infrastructure, Networking and Software Development**.
+
+<br><br>
+
 <a href="https://www.linkedin.com/in/kauan-soares-183638355">
-<img src="https://img.shields.io/badge/LinkedIn-Kauan%20Soares-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
+  <img src="https://img.shields.io/badge/LinkedIn-Let's%20Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
 </a>
+
 <a href="https://github.com/soares-dev7">
-<img src="https://img.shields.io/badge/GitHub-soares--dev7-181717?style=for-the-badge&logo=github&logoColor=white"/>
+  <img src="https://img.shields.io/badge/GitHub-Follow%20My%20Work-181717?style=for-the-badge&logo=github&logoColor=white"/>
 </a>
-</div>
-<br>
-<div align="center">
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:2563EB,100:0D1117&height=120&section=footer"/>
+
+<br><br>
+
+### `From fixing technology to building it.` ⚡
+
 </div>
