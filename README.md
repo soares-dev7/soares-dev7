@@ -19,18 +19,20 @@ IT Technician • Networks & Infrastructure • Software Development
 👨‍💻 About Me
 
 public class Kauan {
+
     String role = "IT Technician";
     String education = "Information Technology Student";
+
     String[] focus = {
         "IT Support",
         "Infrastructure",
         "Networking",
         "Software Development"
     };
+
     String development = "Java & Spring Boot";
     String startup = "Nexos";
 }
-
 🛠️ 4+ years of hands-on experience with IT support, hardware, troubleshooting, maintenance and device repair.
 
 🌐 Experience with networks and IT infrastructure, including TCP/IP, DNS, DHCP, Wi-Fi, cabling and network troubleshooting.
