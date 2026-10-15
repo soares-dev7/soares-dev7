@@ -1,4 +1,4 @@
-"""COPAS v0.8 — 171 x 44 (fase 3): verticalidade e natureza.
+"""COPAS v0.9 — 171 x 44 (fase 3): verticalidade e natureza.
 
 As árvores da arte (estruturas_cenario.json) ficam onde estão e ditam a
 geometria. Cada plataforma se apoia num elemento medido na arte:
@@ -52,8 +52,8 @@ PLATAFORMAS = [
     (99, 110, 22, "galho", "ponte de galhos sobre o ramo conector B"),
     (112, 117, 21, "galho", "galho esquerdo da árvore de fundo col 118 (Vigia)"),
     (119, 125, 23, "deck", "galho direito da Vigia + toquinho"),
-    (127, 132, 21, "galho", "copa baixa da Vigia"),
-    (134, 137, 20, "galho", "ponta da copa da Vigia"),
+    (127, 132, 21, "galho", "ramo conector A (v0.9)"),
+    (134, 137, 20, "galho", "ponta do ramo conector A (v0.9)"),
     (139, 144, 19, "galho", "ramo conector B"),
     (146, 170, 17, "deck", "tronco de fundo col 156 + portal ancestral"),
     (150, 155, 15, "galho", "toquinho sobre o deck"),
@@ -64,7 +64,7 @@ PLATAFORMAS = [
     (84, 93, 28, "deck", "raízes da Espiral"),
 ]
 
-MINERIOS = [(19, 32), (39, 29), (28, 23), (49, 21), (61, 26), (71, 24),
+MINERIOS = [(19, 32), (39, 29), (28, 23), (49, 21), (58, 26), (70, 24),
             (79, 30), (90, 28), (33, 37), (88, 16), (104, 22), (122, 23), (136, 20),
             (153, 15), (163, 17)]
 
@@ -85,7 +85,7 @@ def construir():
     sobre(158, 17, CH_ARENA)
     sobre(166, 17, P_ARENA)
     sobre(36, 29, COBRA)
-    sobre(57, 26, COBRA)
+    sobre(64, 26, COBRA)          # v0.9: longe do minério do ninho
     t.set(78, 18, TUCANO)
     for c, r in MINERIOS:
         sobre(c, r, MINERIO)
@@ -130,12 +130,25 @@ def decorar(t):
             ponta = c1 if acaso(c0, r, 29) > 0.5 else c0
             comp.grupo_chao(ponta, r - 1, [FOLHAGEM if acaso(c0, r, 31) > 0.5 else SAMAMB])
 
+    # v0.9 — leitura do risco: só nos PONTOS DE SALTO sobre o vazio (a ponta
+    # da plataforma encara outra plataforma a até 4 colunas e não há nada
+    # sólido nas 12 linhas abaixo do vão), uma liana longa marca a borda de
+    # decolagem. Queda = consequência visível, não armadilha.
+    def vazio_abaixo(c, r):
+        return all(not comp.solido(c, rr) for rr in range(r + 1, min(L, r + 13)))
+    for c0, c1, r, tipo, _ in PLATAFORMAS:
+        for ponta, passo in ((c0, -1), (c1, 1)):
+            vao = [ponta + passo * k for k in range(1, 5)]
+            alvo = any(any(comp.solido(x, rr) for rr in range(r - 3, r + 4)) for x in vao[1:])
+            if alvo and 0 <= vao[0] < C and vazio_abaixo(vao[0], r - 1):
+                comp.pendurar(ponta, r + 1, [LIANA, LIANA])
+
     # Pendurados: lianas de comprimentos variados, ramos e um ou outro cipó.
     for c0, c1, r, tipo, _ in PLATAFORMAS:
         c = c0 + int(acaso(c0, r, 37) * 2)
         while c <= c1:
             sorte = acaso(c, r, 41)
-            if sorte < 0.62:
+            if sorte < 0.36:
                 if sorte < 0.20:
                     ids = [RAMOS]
                 elif sorte < 0.27:
@@ -166,6 +179,7 @@ def estruturas():
         {"imagem": "isa_final_ramo_conector_copas_A.png", "coluna": 70, "base": 27},
         {"imagem": "isa_final_ramo_conector_copas_B.png", "coluna": 104.5, "base": 27},
         {"imagem": "isa_final_ramo_conector_copas_B.png", "coluna": 141.5, "base": 24},
+        {"imagem": "isa_final_ramo_conector_copas_A.png", "coluna": 131.5, "base": 25},  # v0.9: apoio dos galhos 127-137
         {"imagem": "isa_v05_tronco_copas_16px.png", "coluna": 43.5, "base": 29},
         {"imagem": "isa_v05_tronco_copas_16px.png", "coluna": 96.5, "base": 20},
         {"imagem": "isa_v05_tronco_copas_16px.png", "coluna": 152.5, "base": 17},

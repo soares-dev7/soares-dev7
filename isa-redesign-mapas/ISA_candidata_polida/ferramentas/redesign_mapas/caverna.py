@@ -1,4 +1,4 @@
-"""CAVERNA v0.8 — 251 x 44 (fase 2): exploração e descoberta.
+"""CAVERNA v0.9 — 251 x 44 (fase 2): exploração e descoberta.
 
 v0.8: GALERIA DE MINA superior (rota alternativa à passagem espremida: sobe
 pelos andaimes da câmara até um patamar de madeira, segue por um túnel
@@ -51,7 +51,7 @@ POCA = (203, 211)
 POCO = (133, 138)                 # fundo do poço dos cristais (linha 34)
 GRUTA_INF = (157, 202, 37, 40)    # gruta inferior sob o salão de combate (ar), piso na 41
 POCO_GRUTA = (157, 160, 31, 36)   # poço de descida, com andaimes em zigue-zague
-LAGO_GRUTA = (176, 179)           # lâmina d'água no piso da gruta
+LAGO_GRUTA = (180, 183)           # lâmina d'água no piso da gruta
 GALERIA = (96, 121, 22, 24)       # galeria de mina superior: colunas e linhas de ar
 
 # Andaimes de mina: (c0, c1, linha)
@@ -69,7 +69,8 @@ def construir():
     t = Grade(L, C, ROCHA)
 
     # teto irregular: algumas colunas sobem 1 linha (nunca descem: não rouba altura)
-    teto_v = [teto[c] - (1 if ruido(c, 0, 61, 2.5) > 0.62 else 0) for c in range(C)]
+    # v0.9: ruído em escala maior -> recortes de 2-5 colunas, sem o serrilhado de 1 coluna
+    teto_v = [teto[c] - (1 if ruido(c, 0, 61, 5.0) > 0.60 else 0) for c in range(C)]
     for c in range(C):
         for r in range(teto_v[c] + 1, piso[c]):
             t.set(c, r, VAZIO)
@@ -110,9 +111,10 @@ def construir():
     t.set(77, teto_v[77] + 1, ARANHA)
     t.set(229, teto_v[229] + 1, ARANHA)
     t.set(110, GALERIA[2], ARANHA)          # guarda a galeria de mina
-    for c in (16, 26, 36, 53, 112, 127, 139, 148, 198, 208, 216, 233, 245):
+    # v0.9: col 3 = recompensa atrás da chegada; 213/222 fora da poça
+    for c in (3, 16, 26, 36, 53, 112, 127, 139, 148, 198, 213, 222, 233, 245):
         chao(c, MINERIO)
-    for c in (163, 172, 181, 190, 199):               # gruta inferior
+    for c in (162, 175, 188, 201):                    # gruta inferior (v0.9: 4, mais espaçados)
         t.set(c, GRUTA_INF[3], MINERIO)
     for c, r in [(68, 34), (84, 30), (94, 26), (104, 25), (116, 25), (171, 31), (189, 31)]:
         assert t.g[r][c] != VAZIO, ("minerio sem apoio", c, r)
@@ -134,8 +136,8 @@ def decorar(t, piso, teto):
     # Gruta inferior: cristais, poça e cogumelos; tochas na boca do poço.
     for c in range(LAGO_GRUTA[0], LAGO_GRUTA[1] + 1):
         comp.por(c, 40, AGUA)
-    for c, v in ((160, CRIST_AZUL), (167, COGU), (175, CRIST_ROXO), (185, CRIST_AZUL),
-                 (186, CRIST_ROXO), (194, FUNGO), (202, CRIST_AZUL)):
+    for c, v in ((160, CRIST_AZUL), (167, COGU), (170, CRIST_ROXO), (185, CRIST_AZUL),
+                 (193, FUNGO), (197, CRIST_AZUL)):   # v0.9: nada encostado nos minérios
         if v != VAZIO:
             comp.por(c, 40, v)
     comp.por(161, piso[161] - 1, TOCHA)
@@ -168,39 +170,61 @@ def decorar(t, piso, teto):
     comp.grupo_chao(POCA[0] - 2, piso[POCA[0] - 2] - 1, [ARBUSTO, COGU])
     comp.grupo_chao(213, piso[213] - 1, [FUNGO, COGU])
 
-    # Estalactites: em grupos onde o teto forma bolsões, nunca contínuas.
-    seguidas = 0
-    ultimo = None
+    # Estalactites (v0.9): grupos de 1 a 3 nas pontas baixas do teto, com
+    # espaçamento variável — não mais pares em ritmo regular.
+    tetos = {}
     for c, r in comp.tetos():
-        if r < 15 or r > 37 or t.get(c, r - 1) == VIGA:
-            continue                      # nada pendurado sob madeira
-        if GALERIA[0] <= c <= GALERIA[1] + 3:
-            continue                      # túnel escavado e passagem espremida: teto liso
-        junto = ultimo == (c - 1, r)
-        seguidas = seguidas + 1 if junto else 0
-        if seguidas >= 2:                 # no máximo 2 lado a lado
-            ultimo = None
+        if 15 <= r <= 37 and t.get(c, r - 1) != VIGA and not (GALERIA[0] <= c <= GALERIA[1] + 3):
+            tetos.setdefault(c, []).append(r)
+    proxima = 0
+    for c in sorted(tetos):
+        if c < proxima:
             continue
-        if ruido(c, 0, 51, 5.0) > 0.52 and acaso(c, r, 52) > 0.40 and comp.por(c, r, ESTALACT):
-            ultimo = (c, r)
-        else:
-            ultimo, seguidas = None, 0
+        for r in tetos[c]:
+            vizinhos = [rr for cc in (c - 2, c + 2) for rr in tetos.get(cc, [])]
+            ponta = vizinhos and r >= max(vizinhos)          # teto desce aqui
+            if ponta and acaso(c, r, 52) > 0.35:
+                tam = 1 + int(acaso(c, r, 53) * 3)
+                for i in range(tam):
+                    if (r in tetos.get(c + i, [])):
+                        comp.por(c + i, r, ESTALACT)
+                proxima = c + tam + 3 + int(acaso(c, r, 54) * 5)
+                break
 
-    # Piso: cristais perto dos veios; cogumelos/musgo nas partes úmidas.
+    # Piso (v0.9): cristais só em GRUPOS de 2-3 junto aos veios ou nas manchas da
+    # galeria (nada de cristal isolado a cada poucas colunas); cogumelos e musgo
+    # nas partes úmidas.
+    cand = {}
     for c in range(1, C - 1):
         r = piso[c] - 1
         if not comp.apoio(c, r):
             continue
         veio = any(t.get(c + dx, piso[c] + dy) == ROCHA_CRISTAL for dx in (-1, 0, 1) for dy in (0, 1))
-        umido = 56 <= c <= 99 or 200 <= c <= 217
         galeria = 125 <= c <= 160
-        sorte = acaso(c, r, 71)
         mancha = ruido(c, 0, 73, 6.0)
-        if (veio and sorte > 0.35) or (galeria and mancha > 0.55 and sorte > 0.55):
-            comp.por(c, r, CRIST_AZUL if ruido(c, 3, 77, 4.0) > 0.5 else CRIST_ROXO)
-        elif umido and mancha > 0.58 and sorte > 0.5:
+        if (veio and acaso(c, r, 71) > 0.30) or (galeria and mancha > 0.55):
+            cand[c] = r
+    c = 1
+    while c < C - 1:
+        grupo = []
+        while c in cand and len(grupo) < 3 and (not grupo or cand[c] == cand[grupo[0]]):
+            grupo.append(c)
+            c += 1
+        if len(grupo) >= 2:
+            for x in grupo:
+                comp.por(x, cand[x], CRIST_AZUL if ruido(x, 3, 77, 4.0) > 0.5 else CRIST_ROXO)
+            c += 2
+        else:
+            c += 1
+    for c in range(1, C - 1):
+        r = piso[c] - 1
+        if not comp.apoio(c, r):
+            continue
+        umido = 56 <= c <= 99 or 200 <= c <= 217
+        mancha = ruido(c, 0, 73, 6.0)
+        if umido and mancha > 0.58 and acaso(c, r, 71) > 0.5:
             comp.por(c, r, (COGU, ARBUSTO, FUNGO)[int(acaso(c, r, 79) * 3) % 3])
-        elif mancha > 0.78 and sorte > 0.7:
+        elif mancha > 0.80 and acaso(c, r, 71) > 0.75:
             comp.por(c, r, COGU)
     return comp.d
 
@@ -225,6 +249,12 @@ def estruturas(piso):
                         "coluna": meio + 0.5, "base": piso[meio] + 1})
         elif vao == 7:      # o maior suporte (7 tiles) apoiado sem afundar
             out.append({"imagem": "isa_mine_support_112.png", "coluna": meio + 0.5, "base": piso[meio]})
+    # v0.9: o andaime alto (93-96) e o patamar da galeria (97-99) flutuavam;
+    # suporte de 7 tiles no chão + viga vertical até a madeira.
+    for col, r in ((94.5, 26), (98.5, 25)):
+        base = piso[int(col)]
+        out.append({"imagem": "isa_mine_support_112.png", "coluna": col, "base": base})
+        out.append({"imagem": "isa_v05_viga_mina_48px.png", "coluna": col, "base": base - 6})
     # escoramento do túnel da galeria: postes do piso ao teto (3 tiles)
     for c in (102.5, 109.5, 117.5):
         out.append({"imagem": "isa_v05_viga_mina_48px.png", "coluna": c, "base": GALERIA[3] + 1})

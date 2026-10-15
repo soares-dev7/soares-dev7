@@ -1,4 +1,4 @@
-"""FLORESTA v0.8 — 404 x 44. Setor inicial (fase 1): "a floresta viva".
+"""FLORESTA v0.9 — 404 x 44. Setor inicial (fase 1): "a floresta viva".
 
 Percurso (colunas) e o que cada trecho oferece:
     0-37    Clareira       relevo suave, placa, 1º pulo numa passarela baixa (minério)
@@ -34,12 +34,12 @@ LIANA, FUNGO, RAMOS, RAIZ_ARCO, PEDRA, FOLHAGEM = 118, 119, 120, 121, 122, 123
 
 PERFIL = [
     (0, 30), (23, 29), (27, 30),                                   # clareira (spawn plano; morrinho 23-26)
-    (38, 29), (41, 28), (45, 27), (49, 26), (52, 25),              # colina
-    (61, 26), (64, 27), (67, 28), (71, 29), (74, 30),
+    (38, 29), (40, 28), (45, 27), (49, 26), (52, 25),              # colina (v0.9: assimétrica,
+    (61, 27), (63, 28), (69, 29), (72, 30),                        #  leste mais íngreme)
     (78, 31), (81, 32), (84, 33), (91, 32), (93, 31), (95, 30),    # ravina
     (101, 31), (103, 32), (105, 33), (117, 32), (119, 31),         # clareira afundada
     (121, 30), (124, 29), (133, 28), (144, 29),                    # planície
-    (161, 28), (163, 27), (166, 26), (168, 24), (171, 23),         # Guardiã, face oeste
+    (161, 28), (165, 26), (168, 24), (171, 23),                    # Guardiã, face oeste (v0.9: terraços variados)
     (179, 21),                                                     # platô
     (196, 22),                                                     # ombro leste (teto do túnel)
     (200, 26), (207, 27), (210, 28), (213, 29), (216, 30),         # paredão da gruta
@@ -49,11 +49,11 @@ PERFIL = [
     (302, 31), (308, 30), (311, 29),                               # toca
     (324, 28), (326, 27), (332, 26), (338, 25),
     (342, 26), (343, 27), (344, 28), (351, 27), (352, 26),         # vala
-    (353, 25), (356, 24),                                          # platô da Árvore-Mãe
+    (353, 25), (356, 24), (376, 23), (389, 24),                    # platô; v0.9: pedestal sob a Árvore-Mãe
 ]
 LAGO = (228, 239)
 # Gruta dentro da colina da Guardiã: (c0, c1, linha_topo, linha_base) de ar
-GRUTA = [(187, 193, 23, 25),        # salão sob a árvore (teto de 2 tiles de terra)
+GRUTA = [(187, 193, 24, 25),        # salão sob a árvore (v0.9: teto 1 tile mais baixo, janela menor)
          (194, 199, 24, 25)]        # túnel curto até a porta no paredão (col 200)
 
 PLATAFORMAS = [  # (c0, c1, linha, tile, colunas de escora até o chão)
@@ -81,8 +81,8 @@ ARVORES = [("arvore_antiga.png", 19), ("arvore_antiga_alt.png", 56),
            ("arvore_antiga_alt.png", 282), ("arvore_antiga.png", 315),
            ("arvore_antiga_alt.png", 328), ("arvore_antiga.png", 359)]
 
-MINERIOS_CHAO = [15, 46, 70, 82, 94, 108, 119, 130, 146, 157, 170, 183, 212, 227,
-                 240, 252, 270, 286, 312, 326, 336, 347, 363]
+MINERIOS_CHAO = [15, 46, 70, 82, 94, 108, 119, 130, 146, 157, 170, 183, 214, 227,
+                 240, 250, 274, 286, 312, 326, 339, 349, 363]   # v0.9: 5 ajustes de ritmo
 MINERIOS_PLAT = [(31, 28), (59, 21), (203, 19), (298, 28), (261, 25), (391, 22), (379, 14)]
 MINERIOS_GRUTA = [(190, 26), (313, 34)]
 # Toca sob a baixada: desce do fundo da depressão (272-277) e corre sob o chão.
@@ -199,7 +199,7 @@ def decorar(t, alt, troncos):
 
     # Gruta da Guardiã: raízes penduradas do teto, fungos luminosos no chão.
     for c in (188, 192, 195):
-        comp.pendurar(c, 23 if c < 194 else 24, [LIANA] if c != 192 else [RAMOS])
+        comp.pendurar(c, 24, [LIANA] if c != 192 else [RAMOS])
     for c, v in ((187, FUNGO), (188, RAIZ_ARCO), (192, COGU), (193, FUNGO), (196, RAIZ_ARCO)):
         comp.por(c, 25, v)
 

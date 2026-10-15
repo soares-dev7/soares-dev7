@@ -1,0 +1,54 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+== LIGACOES ENTRE SETORES ==
+  OK: todas as passagens tem destino e chegada; todos os setores tem ida e volta
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+
+== FLORESTA (pulo duplo) ==
+  32 minerios, 0 macas, 2 passagens, 2143 posicoes em pe, superficies pisadas 517/517, 21.6 s
+  OK
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+
+== CAVERNA (pulo duplo) ==
+  25 minerios, 0 macas, 1 passagens, 1496 posicoes em pe, superficies pisadas 364/364, 14.1 s
+  OK
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+
+== COPAS (pulo duplo) ==
+  15 minerios, 0 macas, 2 passagens, 1084 posicoes em pe, superficies pisadas 251/251, 9.7 s
+  OK
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.16)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+
+== ARENA (pulo duplo) ==
+  0 minerios, 2 macas, 1 passagens, 218 posicoes em pe, superficies pisadas 53/53, 2.0 s
+  OK
+
+APROVADO: 0 erro(s)

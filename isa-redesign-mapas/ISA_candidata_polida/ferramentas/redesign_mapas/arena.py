@@ -45,7 +45,9 @@ def decorar(t):
     for c in (14, 34):
         for i in range(3):
             comp.por(c, 23 - i, RUNAS)
-    for c, r in ((13, 23), (35, 23), (3, 20), (38, 20)):
+    # v0.9: braseiro no topo de cada obelisco (as tochas de chão ficavam na
+    # frente dos estandartes de pedra); tochas nas pontas das plataformas altas.
+    for c, r in ((14, 20), (34, 20), (3, 20), (38, 20)):
         comp.por(c, r, TOCHA)
     # Estandartes e lanternas pendurados das plataformas altas (linha 21).
     comp.pendurar(4, 22, [BANDEIRA])

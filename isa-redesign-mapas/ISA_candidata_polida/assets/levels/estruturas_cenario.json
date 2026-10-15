@@ -58,7 +58,7 @@
     {
       "imagem": "isa_v06_arvore_mae_visivel.png",
       "coluna": 383,
-      "base": 24
+      "base": 23
     }
   ],
   "copas": [
@@ -141,6 +141,11 @@
       "imagem": "isa_final_ramo_conector_copas_B.png",
       "coluna": 141.5,
       "base": 24
+    },
+    {
+      "imagem": "isa_final_ramo_conector_copas_A.png",
+      "coluna": 131.5,
+      "base": 25
     },
     {
       "imagem": "isa_v05_tronco_copas_16px.png",
@@ -263,6 +268,26 @@
       "imagem": "isa_mine_support_112.png",
       "coluna": 90.5,
       "base": 36
+    },
+    {
+      "imagem": "isa_mine_support_112.png",
+      "coluna": 94.5,
+      "base": 35
+    },
+    {
+      "imagem": "isa_v05_viga_mina_48px.png",
+      "coluna": 94.5,
+      "base": 29
+    },
+    {
+      "imagem": "isa_mine_support_112.png",
+      "coluna": 98.5,
+      "base": 34
+    },
+    {
+      "imagem": "isa_v05_viga_mina_48px.png",
+      "coluna": 98.5,
+      "base": 28
     },
     {
       "imagem": "isa_v05_viga_mina_48px.png",

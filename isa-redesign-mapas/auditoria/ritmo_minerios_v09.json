@@ -1,0 +1,705 @@
+[
+  {
+    "setor": "floresta",
+    "minerios": 32,
+    "erros": [],
+    "avisos": [
+      "minerio col 15 linha 29: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 31 linha 27: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 46 linha 26: outro minerio a 3.3 s de percurso (meta 3.5 s)",
+      "minerio col 46 linha 26: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 59 linha 20: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 59 linha 20: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 70 linha 28: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 70 linha 28: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 82 linha 31: outro minerio a 3.0 s de percurso (meta 3.5 s)",
+      "minerio col 82 linha 31: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 94 linha 30: outro minerio a 3.0 s de percurso (meta 3.5 s)",
+      "minerio col 94 linha 30: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 108 linha 32: outro minerio a 2.7 s de percurso (meta 3.5 s)",
+      "minerio col 108 linha 32: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 119 linha 30: outro minerio a 2.7 s de percurso (meta 3.5 s)",
+      "minerio col 119 linha 30: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 130 linha 28: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 130 linha 28: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 146 linha 28: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 146 linha 28: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 157 linha 28: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 170 linha 23: outro minerio a 3.3 s de percurso (meta 3.5 s)",
+      "minerio col 183 linha 20: outro minerio a 3.3 s de percurso (meta 3.5 s)",
+      "minerio col 203 linha 18: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 214 linha 28: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 214 linha 28: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 227 linha 30: outro minerio a 3.3 s de percurso (meta 3.5 s)",
+      "minerio col 227 linha 30: 6 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 240 linha 30: outro minerio a 2.5 s de percurso (meta 3.5 s)",
+      "minerio col 240 linha 30: 6 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 250 linha 28: outro minerio a 2.5 s de percurso (meta 3.5 s)",
+      "minerio col 250 linha 28: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 261 linha 24: outro minerio a 2.7 s de percurso (meta 3.5 s)",
+      "minerio col 261 linha 24: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 274 linha 29: outro minerio a 3.0 s de percurso (meta 3.5 s)",
+      "minerio col 274 linha 29: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 286 linha 29: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 298 linha 27: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 312 linha 28: outro minerio a 3.1 s de percurso (meta 3.5 s)",
+      "minerio col 313 linha 33: outro minerio a 3.1 s de percurso (meta 3.5 s)",
+      "minerio col 326 linha 26: outro minerio a 3.3 s de percurso (meta 3.5 s)",
+      "minerio col 339 linha 24: outro minerio a 2.5 s de percurso (meta 3.5 s)",
+      "minerio col 349 linha 27: outro minerio a 2.5 s de percurso (meta 3.5 s)"
+    ],
+    "lista": [
+      {
+        "ordem": 1,
+        "col": 15,
+        "linha": 29,
+        "intervalo_s": 1.8,
+        "vizinho_s": 4.0,
+        "janela15s": 5
+      },
+      {
+        "ordem": 2,
+        "col": 31,
+        "linha": 27,
+        "intervalo_s": 4.0,
+        "vizinho_s": 3.7,
+        "janela15s": 5
+      },
+      {
+        "ordem": 3,
+        "col": 46,
+        "linha": 26,
+        "intervalo_s": 3.7,
+        "vizinho_s": 3.3,
+        "janela15s": 5
+      },
+      {
+        "ordem": 4,
+        "col": 59,
+        "linha": 20,
+        "intervalo_s": 4.0,
+        "vizinho_s": 2.8,
+        "janela15s": 5
+      },
+      {
+        "ordem": 5,
+        "col": 70,
+        "linha": 28,
+        "intervalo_s": 2.8,
+        "vizinho_s": 2.8,
+        "janela15s": 5
+      },
+      {
+        "ordem": 6,
+        "col": 82,
+        "linha": 31,
+        "intervalo_s": 3.0,
+        "vizinho_s": 3.0,
+        "janela15s": 5
+      },
+      {
+        "ordem": 7,
+        "col": 94,
+        "linha": 30,
+        "intervalo_s": 3.1,
+        "vizinho_s": 3.0,
+        "janela15s": 5
+      },
+      {
+        "ordem": 8,
+        "col": 108,
+        "linha": 32,
+        "intervalo_s": 3.5,
+        "vizinho_s": 2.7,
+        "janela15s": 5
+      },
+      {
+        "ordem": 9,
+        "col": 119,
+        "linha": 30,
+        "intervalo_s": 2.7,
+        "vizinho_s": 2.7,
+        "janela15s": 5
+      },
+      {
+        "ordem": 10,
+        "col": 130,
+        "linha": 28,
+        "intervalo_s": 2.8,
+        "vizinho_s": 2.8,
+        "janela15s": 5
+      },
+      {
+        "ordem": 11,
+        "col": 146,
+        "linha": 28,
+        "intervalo_s": 4.0,
+        "vizinho_s": 2.8,
+        "janela15s": 5
+      },
+      {
+        "ordem": 12,
+        "col": 157,
+        "linha": 28,
+        "intervalo_s": 2.8,
+        "vizinho_s": 2.8,
+        "janela15s": 4
+      },
+      {
+        "ordem": 13,
+        "col": 170,
+        "linha": 23,
+        "intervalo_s": 3.4,
+        "vizinho_s": 3.3,
+        "janela15s": 4
+      },
+      {
+        "ordem": 14,
+        "col": 183,
+        "linha": 20,
+        "intervalo_s": 3.3,
+        "vizinho_s": 3.3,
+        "janela15s": 3
+      },
+      {
+        "ordem": 15,
+        "col": 203,
+        "linha": 18,
+        "intervalo_s": 5.1,
+        "vizinho_s": 2.8,
+        "janela15s": 4
+      },
+      {
+        "ordem": 16,
+        "col": 190,
+        "linha": 25,
+        "intervalo_s": 4.5,
+        "vizinho_s": 4.5,
+        "janela15s": 4
+      },
+      {
+        "ordem": 17,
+        "col": 214,
+        "linha": 28,
+        "intervalo_s": 5.9,
+        "vizinho_s": 2.8,
+        "janela15s": 5
+      },
+      {
+        "ordem": 18,
+        "col": 227,
+        "linha": 30,
+        "intervalo_s": 3.3,
+        "vizinho_s": 3.3,
+        "janela15s": 6
+      },
+      {
+        "ordem": 19,
+        "col": 240,
+        "linha": 30,
+        "intervalo_s": 3.3,
+        "vizinho_s": 2.5,
+        "janela15s": 6
+      },
+      {
+        "ordem": 20,
+        "col": 250,
+        "linha": 28,
+        "intervalo_s": 2.5,
+        "vizinho_s": 2.5,
+        "janela15s": 5
+      },
+      {
+        "ordem": 21,
+        "col": 261,
+        "linha": 24,
+        "intervalo_s": 2.8,
+        "vizinho_s": 2.7,
+        "janela15s": 5
+      },
+      {
+        "ordem": 22,
+        "col": 274,
+        "linha": 29,
+        "intervalo_s": 3.2,
+        "vizinho_s": 3.0,
+        "janela15s": 5
+      },
+      {
+        "ordem": 23,
+        "col": 286,
+        "linha": 29,
+        "intervalo_s": 3.0,
+        "vizinho_s": 2.8,
+        "janela15s": 4
+      },
+      {
+        "ordem": 24,
+        "col": 298,
+        "linha": 27,
+        "intervalo_s": 2.9,
+        "vizinho_s": 2.8,
+        "janela15s": 4
+      },
+      {
+        "ordem": 25,
+        "col": 312,
+        "linha": 28,
+        "intervalo_s": 3.5,
+        "vizinho_s": 3.1,
+        "janela15s": 4
+      },
+      {
+        "ordem": 26,
+        "col": 313,
+        "linha": 33,
+        "intervalo_s": 3.1,
+        "vizinho_s": 3.1,
+        "janela15s": 4
+      },
+      {
+        "ordem": 27,
+        "col": 326,
+        "linha": 26,
+        "intervalo_s": 7.0,
+        "vizinho_s": 3.3,
+        "janela15s": 4
+      },
+      {
+        "ordem": 28,
+        "col": 339,
+        "linha": 24,
+        "intervalo_s": 3.3,
+        "vizinho_s": 2.5,
+        "janela15s": 4
+      },
+      {
+        "ordem": 29,
+        "col": 349,
+        "linha": 27,
+        "intervalo_s": 2.5,
+        "vizinho_s": 2.5,
+        "janela15s": 3
+      },
+      {
+        "ordem": 30,
+        "col": 363,
+        "linha": 23,
+        "intervalo_s": 3.6,
+        "vizinho_s": 3.5,
+        "janela15s": 3
+      },
+      {
+        "ordem": 31,
+        "col": 391,
+        "linha": 21,
+        "intervalo_s": 7.1,
+        "vizinho_s": 3.6,
+        "janela15s": 2
+      },
+      {
+        "ordem": 32,
+        "col": 379,
+        "linha": 13,
+        "intervalo_s": 5.6,
+        "vizinho_s": 3.6,
+        "janela15s": 1
+      }
+    ],
+    "intervalo_mediano_s": 3.3,
+    "intervalo_min_s": 2.5,
+    "intervalo_max_s": 7.1,
+    "vizinho_min_s": 2.5,
+    "vizinho_mediano_s": 2.9
+  },
+  {
+    "setor": "caverna",
+    "minerios": 25,
+    "erros": [],
+    "avisos": [
+      "minerio col 3 linha 29: outro minerio a 3.3 s de percurso (meta 3.5 s)",
+      "minerio col 3 linha 29: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 16 linha 28: outro minerio a 2.5 s de percurso (meta 3.5 s)",
+      "minerio col 16 linha 28: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 26 linha 30: outro minerio a 2.5 s de percurso (meta 3.5 s)",
+      "minerio col 26 linha 30: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 36 linha 32: outro minerio a 2.5 s de percurso (meta 3.5 s)",
+      "minerio col 36 linha 32: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 53 linha 33: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 84 linha 29: outro minerio a 2.5 s de percurso (meta 3.5 s)",
+      "minerio col 94 linha 25: outro minerio a 2.5 s de percurso (meta 3.5 s)",
+      "minerio col 104 linha 24: outro minerio a 2.5 s de percurso (meta 3.5 s)",
+      "minerio col 116 linha 24: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 116 linha 24: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 127 linha 29: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 139 linha 32: outro minerio a 2.3 s de percurso (meta 3.5 s)",
+      "minerio col 148 linha 29: outro minerio a 2.3 s de percurso (meta 3.5 s)",
+      "minerio col 162 linha 40: outro minerio a 3.2 s de percurso (meta 3.5 s)",
+      "minerio col 175 linha 40: outro minerio a 3.2 s de percurso (meta 3.5 s)",
+      "minerio col 189 linha 30: outro minerio a 2.2 s de percurso (meta 3.5 s)",
+      "minerio col 188 linha 40: outro minerio a 3.2 s de percurso (meta 3.5 s)",
+      "minerio col 198 linha 33: outro minerio a 2.2 s de percurso (meta 3.5 s)",
+      "minerio col 201 linha 40: outro minerio a 3.2 s de percurso (meta 3.5 s)",
+      "minerio col 213 linha 33: outro minerio a 2.2 s de percurso (meta 3.5 s)",
+      "minerio col 222 linha 30: outro minerio a 2.2 s de percurso (meta 3.5 s)",
+      "minerio col 233 linha 28: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 245 linha 29: outro minerio a 3.0 s de percurso (meta 3.5 s)"
+    ],
+    "lista": [
+      {
+        "ordem": 1,
+        "col": 3,
+        "linha": 29,
+        "intervalo_s": 1.0,
+        "vizinho_s": 3.3,
+        "janela15s": 5
+      },
+      {
+        "ordem": 2,
+        "col": 16,
+        "linha": 28,
+        "intervalo_s": 3.3,
+        "vizinho_s": 2.5,
+        "janela15s": 5
+      },
+      {
+        "ordem": 3,
+        "col": 26,
+        "linha": 30,
+        "intervalo_s": 2.5,
+        "vizinho_s": 2.5,
+        "janela15s": 5
+      },
+      {
+        "ordem": 4,
+        "col": 36,
+        "linha": 32,
+        "intervalo_s": 2.6,
+        "vizinho_s": 2.5,
+        "janela15s": 5
+      },
+      {
+        "ordem": 5,
+        "col": 53,
+        "linha": 33,
+        "intervalo_s": 4.3,
+        "vizinho_s": 3.7,
+        "janela15s": 5
+      },
+      {
+        "ordem": 6,
+        "col": 68,
+        "linha": 33,
+        "intervalo_s": 3.8,
+        "vizinho_s": 3.7,
+        "janela15s": 4
+      },
+      {
+        "ordem": 7,
+        "col": 84,
+        "linha": 29,
+        "intervalo_s": 4.1,
+        "vizinho_s": 2.5,
+        "janela15s": 4
+      },
+      {
+        "ordem": 8,
+        "col": 94,
+        "linha": 25,
+        "intervalo_s": 2.5,
+        "vizinho_s": 2.5,
+        "janela15s": 3
+      },
+      {
+        "ordem": 9,
+        "col": 104,
+        "linha": 24,
+        "intervalo_s": 2.5,
+        "vizinho_s": 2.5,
+        "janela15s": 2
+      },
+      {
+        "ordem": 10,
+        "col": 112,
+        "linha": 31,
+        "intervalo_s": 7.3,
+        "vizinho_s": 3.8,
+        "janela15s": 1
+      },
+      {
+        "ordem": 11,
+        "col": 116,
+        "linha": 24,
+        "intervalo_s": 18.6,
+        "vizinho_s": 2.8,
+        "janela15s": 5
+      },
+      {
+        "ordem": 12,
+        "col": 127,
+        "linha": 29,
+        "intervalo_s": 2.8,
+        "vizinho_s": 2.8,
+        "janela15s": 4
+      },
+      {
+        "ordem": 13,
+        "col": 139,
+        "linha": 32,
+        "intervalo_s": 3.0,
+        "vizinho_s": 2.3,
+        "janela15s": 4
+      },
+      {
+        "ordem": 14,
+        "col": 148,
+        "linha": 29,
+        "intervalo_s": 2.4,
+        "vizinho_s": 2.3,
+        "janela15s": 3
+      },
+      {
+        "ordem": 15,
+        "col": 162,
+        "linha": 40,
+        "intervalo_s": 4.6,
+        "vizinho_s": 3.2,
+        "janela15s": 3
+      },
+      {
+        "ordem": 16,
+        "col": 171,
+        "linha": 30,
+        "intervalo_s": 5.5,
+        "vizinho_s": 4.3,
+        "janela15s": 2
+      },
+      {
+        "ordem": 17,
+        "col": 175,
+        "linha": 40,
+        "intervalo_s": 8.7,
+        "vizinho_s": 3.2,
+        "janela15s": 2
+      },
+      {
+        "ordem": 18,
+        "col": 189,
+        "linha": 30,
+        "intervalo_s": 13.1,
+        "vizinho_s": 2.2,
+        "janela15s": 1
+      },
+      {
+        "ordem": 19,
+        "col": 188,
+        "linha": 40,
+        "intervalo_s": 16.3,
+        "vizinho_s": 3.2,
+        "janela15s": 1
+      },
+      {
+        "ordem": 20,
+        "col": 198,
+        "linha": 33,
+        "intervalo_s": 18.5,
+        "vizinho_s": 2.2,
+        "janela15s": 1
+      },
+      {
+        "ordem": 21,
+        "col": 201,
+        "linha": 40,
+        "intervalo_s": 21.8,
+        "vizinho_s": 3.2,
+        "janela15s": 1
+      },
+      {
+        "ordem": 22,
+        "col": 213,
+        "linha": 33,
+        "intervalo_s": 25.6,
+        "vizinho_s": 2.2,
+        "janela15s": 4
+      },
+      {
+        "ordem": 23,
+        "col": 222,
+        "linha": 30,
+        "intervalo_s": 2.3,
+        "vizinho_s": 2.2,
+        "janela15s": 3
+      },
+      {
+        "ordem": 24,
+        "col": 233,
+        "linha": 28,
+        "intervalo_s": 2.8,
+        "vizinho_s": 2.8,
+        "janela15s": 2
+      },
+      {
+        "ordem": 25,
+        "col": 245,
+        "linha": 29,
+        "intervalo_s": 3.0,
+        "vizinho_s": 3.0,
+        "janela15s": 1
+      }
+    ],
+    "intervalo_mediano_s": 3.9,
+    "intervalo_min_s": 2.3,
+    "intervalo_max_s": 25.6,
+    "vizinho_min_s": 2.2,
+    "vizinho_mediano_s": 2.8
+  },
+  {
+    "setor": "copas",
+    "minerios": 15,
+    "erros": [],
+    "avisos": [
+      "minerio col 19 linha 31: outro minerio a 2.3 s de percurso (meta 3.5 s)",
+      "minerio col 39 linha 28: outro minerio a 2.6 s de percurso (meta 3.5 s)",
+      "minerio col 39 linha 28: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 28 linha 22: outro minerio a 2.3 s de percurso (meta 3.5 s)",
+      "minerio col 28 linha 22: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 49 linha 20: outro minerio a 2.3 s de percurso (meta 3.5 s)",
+      "minerio col 49 linha 20: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 58 linha 25: outro minerio a 2.3 s de percurso (meta 3.5 s)",
+      "minerio col 70 linha 23: outro minerio a 2.3 s de percurso (meta 3.5 s)",
+      "minerio col 79 linha 29: outro minerio a 2.3 s de percurso (meta 3.5 s)",
+      "minerio col 90 linha 27: outro minerio a 2.8 s de percurso (meta 3.5 s)",
+      "minerio col 88 linha 15: outro minerio a 2.3 s de percurso (meta 3.5 s)",
+      "minerio col 104 linha 21: 5 minerios em 15 s de percurso (meta <= 4)",
+      "minerio col 153 linha 14: outro minerio a 2.4 s de percurso (meta 3.5 s)",
+      "minerio col 163 linha 16: outro minerio a 2.4 s de percurso (meta 3.5 s)"
+    ],
+    "lista": [
+      {
+        "ordem": 1,
+        "col": 19,
+        "linha": 31,
+        "intervalo_s": 3.6,
+        "vizinho_s": 2.3,
+        "janela15s": 3
+      },
+      {
+        "ordem": 2,
+        "col": 33,
+        "linha": 36,
+        "intervalo_s": 3.6,
+        "vizinho_s": 3.6,
+        "janela15s": 3
+      },
+      {
+        "ordem": 3,
+        "col": 39,
+        "linha": 28,
+        "intervalo_s": 10.4,
+        "vizinho_s": 2.6,
+        "janela15s": 5
+      },
+      {
+        "ordem": 4,
+        "col": 28,
+        "linha": 22,
+        "intervalo_s": 3.4,
+        "vizinho_s": 2.3,
+        "janela15s": 5
+      },
+      {
+        "ordem": 5,
+        "col": 49,
+        "linha": 20,
+        "intervalo_s": 5.3,
+        "vizinho_s": 2.3,
+        "janela15s": 5
+      },
+      {
+        "ordem": 6,
+        "col": 58,
+        "linha": 25,
+        "intervalo_s": 2.3,
+        "vizinho_s": 2.3,
+        "janela15s": 4
+      },
+      {
+        "ordem": 7,
+        "col": 70,
+        "linha": 23,
+        "intervalo_s": 3.0,
+        "vizinho_s": 2.3,
+        "janela15s": 3
+      },
+      {
+        "ordem": 8,
+        "col": 79,
+        "linha": 29,
+        "intervalo_s": 2.3,
+        "vizinho_s": 2.3,
+        "janela15s": 2
+      },
+      {
+        "ordem": 9,
+        "col": 90,
+        "linha": 27,
+        "intervalo_s": 2.8,
+        "vizinho_s": 2.8,
+        "janela15s": 2
+      },
+      {
+        "ordem": 10,
+        "col": 88,
+        "linha": 15,
+        "intervalo_s": 14.6,
+        "vizinho_s": 2.3,
+        "janela15s": 4
+      },
+      {
+        "ordem": 11,
+        "col": 104,
+        "linha": 21,
+        "intervalo_s": 4.0,
+        "vizinho_s": 4.0,
+        "janela15s": 5
+      },
+      {
+        "ordem": 12,
+        "col": 122,
+        "linha": 22,
+        "intervalo_s": 4.5,
+        "vizinho_s": 3.5,
+        "janela15s": 4
+      },
+      {
+        "ordem": 13,
+        "col": 136,
+        "linha": 19,
+        "intervalo_s": 3.6,
+        "vizinho_s": 3.5,
+        "janela15s": 3
+      },
+      {
+        "ordem": 14,
+        "col": 153,
+        "linha": 14,
+        "intervalo_s": 4.3,
+        "vizinho_s": 2.4,
+        "janela15s": 2
+      },
+      {
+        "ordem": 15,
+        "col": 163,
+        "linha": 16,
+        "intervalo_s": 2.4,
+        "vizinho_s": 2.4,
+        "janela15s": 1
+      }
+    ],
+    "intervalo_mediano_s": 3.6,
+    "intervalo_min_s": 2.3,
+    "intervalo_max_s": 14.6,
+    "vizinho_min_s": 2.3,
+    "vizinho_mediano_s": 2.4
+  }
+]
