@@ -1,4 +1,10 @@
-"""CAVERNA — 251 x 44 (fase 2).
+"""CAVERNA v0.8 — 251 x 44 (fase 2): exploração e descoberta.
+
+v0.8: GALERIA DE MINA superior (rota alternativa à passagem espremida: sobe
+pelos andaimes da câmara até um patamar de madeira, segue por um túnel
+escorado e sai por cima da galeria dos cristais) e POÇO DE CRISTAIS com água
+no fundo. Minérios espaçados pelo tempo de percurso (auditar_ritmo_minerios).
+
 
 Piso e teto são dois perfis desenhados à mão; tudo entre eles é ar, o resto é
 rocha. Seções:
@@ -19,13 +25,15 @@ ROCHA, ROCHA_VAR, ROCHA_CRISTAL, VIGA = 24, 25, 26, 61
 MINERIO, COBRA, TUCANO, ARANHA = 91, 92, 93, 94
 P_SAIDA, CH_ENTRADA = 32, 40
 CRIST_AZUL, CRIST_ROXO, TOCHA, COGU, ESTALACT, ARBUSTO, AGUA, FUNGO = 102, 103, 104, 110, 111, 112, 115, 119
+CORDA = 116
 
 PISO = [
     (0, 30), (16, 29), (21, 30), (25, 31), (28, 32), (33, 33), (38, 32),
     (42, 33), (53, 34), (56, 35),                                   # patamar da cobra 42-52
     (58, 35), (64, 36), (72, 35), (76, 34), (80, 35), (86, 36), (94, 35), (98, 34),
     (104, 33), (108, 32), (113, 31), (118, 30),                     # espremida
-    (125, 30), (129, 31), (134, 32), (140, 31), (146, 30), (155, 31), (160, 32),
+    (125, 30), (128, 31), (130, 32), (132, 33), (133, 34), (139, 33), (141, 32), (143, 31),
+    (146, 30), (155, 31), (160, 32),                                # poço dos cristais 133-138
     (164, 33), (197, 34), (200, 34), (203, 35), (212, 34), (215, 33),
     (218, 32), (222, 31), (226, 30), (232, 29), (245, 30),
 ]
@@ -40,9 +48,17 @@ TETO = [  # linha da ÚLTIMA rocha do teto (ar começa na linha seguinte)
     (218, 26), (222, 25), (227, 24), (232, 22), (240, 21), (246, 23),
 ]
 POCA = (203, 211)
+POCO = (133, 138)                 # fundo do poço dos cristais (linha 34)
+GRUTA_INF = (157, 202, 37, 40)    # gruta inferior sob o salão de combate (ar), piso na 41
+POCO_GRUTA = (157, 160, 31, 36)   # poço de descida, com andaimes em zigue-zague
+LAGO_GRUTA = (176, 179)           # lâmina d'água no piso da gruta
+GALERIA = (96, 121, 22, 24)       # galeria de mina superior: colunas e linhas de ar
 
 # Andaimes de mina: (c0, c1, linha)
-VIGAS = [(66, 71, 34), (74, 79, 32), (82, 86, 30), (169, 174, 31), (186, 191, 31)]
+VIGAS = [(66, 71, 34), (74, 79, 32), (82, 86, 30), (88, 92, 28), (93, 96, 26),  # escada até a galeria
+         (97, 99, 25),                                                     # patamar da galeria
+         (159, 160, 33), (157, 158, 35), (159, 160, 37), (157, 158, 39),   # poço até a gruta inferior
+         (169, 174, 31), (186, 191, 31)]
 
 
 def construir():
@@ -72,6 +88,11 @@ def construir():
             if perto_do_ar(c, r) and ruido(c, r, 9, 2.2) > (0.70 if galeria else 0.90):
                 t.g[r][c] = ROCHA_CRISTAL
 
+    g0, g1, gr0, gr1 = GALERIA
+    t.retangulo(g0, g1, gr0, gr1, VAZIO)
+    t.retangulo(*GRUTA_INF[:2], *GRUTA_INF[2:], VAZIO)
+    t.retangulo(*POCO_GRUTA[:2], *POCO_GRUTA[2:], VAZIO)
+
     for c0, c1, r in VIGAS:
         for c in range(c0, c1 + 1):
             assert t.g[r][c] == VAZIO, ("viga em rocha", c, r)
@@ -88,10 +109,13 @@ def construir():
     t.set(31, teto_v[31] + 1, ARANHA)
     t.set(77, teto_v[77] + 1, ARANHA)
     t.set(229, teto_v[229] + 1, ARANHA)
-    for c in (13, 20, 27, 36, 41, 51, 60, 96, 103, 110, 116, 122, 128, 134, 139,
-              144, 152, 158, 166, 181, 198, 201, 216, 222, 233):
+    t.set(110, GALERIA[2], ARANHA)          # guarda a galeria de mina
+    for c in (16, 26, 36, 53, 112, 127, 139, 148, 198, 208, 216, 233, 245):
         chao(c, MINERIO)
-    for c, r in [(68, 34), (77, 32), (84, 30), (171, 31), (189, 31)]:
+    for c in (163, 172, 181, 190, 199):               # gruta inferior
+        t.set(c, GRUTA_INF[3], MINERIO)
+    for c, r in [(68, 34), (84, 30), (94, 26), (104, 25), (116, 25), (171, 31), (189, 31)]:
+        assert t.g[r][c] != VAZIO, ("minerio sem apoio", c, r)
         t.set(c, r - 1, MINERIO)
 
     return t, decorar(t, piso, teto), estruturas(piso)
@@ -102,6 +126,24 @@ def decorar(t, piso, teto):
     comp = Compositor(t, constants.SOLID_TILES, constants.TILES_MARCADORES)
     comp.reservar(236, 240, 27, 28)            # boca da saída
     comp.reservar(5, 9, 28, 29)                # chegada
+    # Galeria de mina: tochas no chão de pedra e corda de corrimão no patamar.
+    for c in (101, 113, 120):
+        comp.por(c, 24, TOCHA)
+    for c in (97, 98, 99):
+        comp.por(c, 24, CORDA)
+    # Gruta inferior: cristais, poça e cogumelos; tochas na boca do poço.
+    for c in range(LAGO_GRUTA[0], LAGO_GRUTA[1] + 1):
+        comp.por(c, 40, AGUA)
+    for c, v in ((160, CRIST_AZUL), (167, COGU), (175, CRIST_ROXO), (185, CRIST_AZUL),
+                 (186, CRIST_ROXO), (194, FUNGO), (202, CRIST_AZUL)):
+        if v != VAZIO:
+            comp.por(c, 40, v)
+    comp.por(161, piso[161] - 1, TOCHA)
+    # Poço dos cristais: lâmina d'água no fundo, cristais nas bordas.
+    for c in range(POCO[0], POCO[1] + 1):
+        comp.por(c, 33, AGUA)
+    for c, v in ((132, CRIST_ROXO), (131, CRIST_AZUL), (143, CRIST_AZUL), (142, CRIST_ROXO)):
+        comp.grupo_chao(c, piso[c] - 1, [v])
     for r in range(L):
         for c in range(C):
             v = t.g[r][c]
@@ -130,8 +172,10 @@ def decorar(t, piso, teto):
     seguidas = 0
     ultimo = None
     for c, r in comp.tetos():
-        if r < 15 or r > 33 or t.get(c, r - 1) == VIGA:
+        if r < 15 or r > 37 or t.get(c, r - 1) == VIGA:
             continue                      # nada pendurado sob madeira
+        if GALERIA[0] <= c <= GALERIA[1] + 3:
+            continue                      # túnel escavado e passagem espremida: teto liso
         junto = ultimo == (c - 1, r)
         seguidas = seguidas + 1 if junto else 0
         if seguidas >= 2:                 # no máximo 2 lado a lado
@@ -176,9 +220,14 @@ def estruturas(piso):
     for c0, c1, r in VIGAS:
         meio = (c0 + c1) // 2
         vao = piso[meio] - r - 1
-        if vao >= 2:
+        if 2 <= vao <= 6:
             out.append({"imagem": f"isa_mine_support_{(vao + 1) * 16}.png",
                         "coluna": meio + 0.5, "base": piso[meio] + 1})
+        elif vao == 7:      # o maior suporte (7 tiles) apoiado sem afundar
+            out.append({"imagem": "isa_mine_support_112.png", "coluna": meio + 0.5, "base": piso[meio]})
+    # escoramento do túnel da galeria: postes do piso ao teto (3 tiles)
+    for c in (102.5, 109.5, 117.5):
+        out.append({"imagem": "isa_v05_viga_mina_48px.png", "coluna": c, "base": GALERIA[3] + 1})
     for c in (31, 229):   # vigas verticais de escoramento perto das aranhas
         out.append({"imagem": "isa_v05_viga_mina_48px.png", "coluna": c - 2.5, "base": piso[c - 3] + 1})
     return out

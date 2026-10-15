@@ -1,4 +1,4 @@
-"""Monta os setores redesenhados (v0.7) e grava no jogo.
+"""Monta os setores redesenhados (v0.8) e grava no jogo.
 
 uso (na raiz do projeto):
     python ferramentas/redesign_mapas/build.py . floresta,caverna,copas,arena --sobrescrever

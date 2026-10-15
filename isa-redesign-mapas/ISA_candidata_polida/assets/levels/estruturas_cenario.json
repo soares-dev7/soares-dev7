@@ -3,12 +3,12 @@
     {
       "imagem": "arvore_antiga.png",
       "coluna": 19,
-      "base": 30
+      "base": 31
     },
     {
       "imagem": "arvore_antiga_alt.png",
       "coluna": 56,
-      "base": 27
+      "base": 26
     },
     {
       "imagem": "arvore_antiga.png",
@@ -18,7 +18,7 @@
     {
       "imagem": "arvore_antiga_alt.png",
       "coluna": 139,
-      "base": 30
+      "base": 29
     },
     {
       "imagem": "arvore_antiga_alt.png",
@@ -27,27 +27,27 @@
     },
     {
       "imagem": "arvore_antiga.png",
-      "coluna": 223,
+      "coluna": 225,
       "base": 32
     },
     {
       "imagem": "arvore_antiga_alt.png",
-      "coluna": 252,
+      "coluna": 282,
       "base": 31
     },
     {
       "imagem": "arvore_antiga.png",
-      "coluna": 279,
+      "coluna": 315,
       "base": 30
     },
     {
       "imagem": "arvore_antiga_alt.png",
-      "coluna": 298,
+      "coluna": 328,
       "base": 28
     },
     {
       "imagem": "arvore_antiga.png",
-      "coluna": 329,
+      "coluna": 359,
       "base": 25
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "imagem": "isa_v06_arvore_mae_visivel.png",
-      "coluna": 353,
+      "coluna": 383,
       "base": 24
     }
   ],
@@ -83,8 +83,13 @@
       "base": 44
     },
     {
+      "imagem": "arvore_copas_alt.png",
+      "coluna": 118,
+      "base": 44
+    },
+    {
       "imagem": "arvore_copas.png",
-      "coluna": 116,
+      "coluna": 156,
       "base": 44
     },
     {
@@ -109,7 +114,7 @@
     },
     {
       "imagem": "isa_copas_portal_ancestral.png",
-      "coluna": 125,
+      "coluna": 165,
       "base": 19
     },
     {
@@ -124,23 +129,38 @@
     },
     {
       "imagem": "isa_final_ramo_conector_copas_A.png",
-      "coluna": 71,
+      "coluna": 70,
       "base": 27
     },
     {
       "imagem": "isa_final_ramo_conector_copas_B.png",
-      "coluna": 101.5,
+      "coluna": 104.5,
+      "base": 27
+    },
+    {
+      "imagem": "isa_final_ramo_conector_copas_B.png",
+      "coluna": 141.5,
       "base": 24
     },
     {
       "imagem": "isa_v05_tronco_copas_16px.png",
-      "coluna": 34.5,
+      "coluna": 43.5,
       "base": 29
     },
     {
       "imagem": "isa_v05_tronco_copas_16px.png",
-      "coluna": 114.5,
+      "coluna": 96.5,
+      "base": 20
+    },
+    {
+      "imagem": "isa_v05_tronco_copas_16px.png",
+      "coluna": 152.5,
       "base": 17
+    },
+    {
+      "imagem": "isa_v05_tronco_copas_16px.png",
+      "coluna": 122.5,
+      "base": 25
     }
   ],
   "caverna": [
@@ -187,7 +207,7 @@
     {
       "imagem": "isa_crystal_cluster_purple.png",
       "coluna": 133,
-      "base": 33
+      "base": 36
     },
     {
       "imagem": "arco_rochoso_alt.png",
@@ -238,6 +258,26 @@
       "imagem": "isa_mine_support_80.png",
       "coluna": 84.5,
       "base": 36
+    },
+    {
+      "imagem": "isa_mine_support_112.png",
+      "coluna": 90.5,
+      "base": 36
+    },
+    {
+      "imagem": "isa_v05_viga_mina_48px.png",
+      "coluna": 102.5,
+      "base": 25
+    },
+    {
+      "imagem": "isa_v05_viga_mina_48px.png",
+      "coluna": 109.5,
+      "base": 25
+    },
+    {
+      "imagem": "isa_v05_viga_mina_48px.png",
+      "coluna": 117.5,
+      "base": 25
     },
     {
       "imagem": "isa_v05_viga_mina_48px.png",

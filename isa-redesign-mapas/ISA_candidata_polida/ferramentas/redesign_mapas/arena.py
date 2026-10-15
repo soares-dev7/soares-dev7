@@ -37,14 +37,15 @@ def decorar(t):
     comp = Compositor(t, constants.SOLID_TILES, constants.TILES_MARCADORES)
     comp.reservar(0, 2, 22, 23)            # saída
     comp.reservar(4, 6, 23, 23)            # chegada
-    comp.reservar(21, 27, 17, 23)          # o Gorila nasce e luta aqui
+    comp.reservar(16, 32, 12, 23)          # palco da luta: limpo
 
-    # Obeliscos de runas, apoiados no piso (alturas diferentes, sem espelhar).
-    for c, alt in ((16, 3), (29, 2)):
-        for i in range(alt):
+    # v0.8 — moldura da luta: dois obeliscos de runas iguais marcam as bordas
+    # do palco (cols 14 e 34), cada um com uma tocha do lado de fora. O centro
+    # (16-32) fica limpo: o jogador lê o Gorila e os projéteis sem ruído.
+    for c in (14, 34):
+        for i in range(3):
             comp.por(c, 23 - i, RUNAS)
-    # Tochas: no chão ao lado dos obeliscos e nas pontas das plataformas altas.
-    for c, r in ((15, 23), (30, 23), (3, 20), (38, 20)):
+    for c, r in ((13, 23), (35, 23), (3, 20), (38, 20)):
         comp.por(c, r, TOCHA)
     # Estandartes e lanternas pendurados das plataformas altas (linha 21).
     comp.pendurar(4, 22, [BANDEIRA])

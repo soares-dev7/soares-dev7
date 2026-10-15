@@ -1,233 +1,233 @@
-# I.S.A. — Redesign dos mapas CSV (v0.7)
+# I.S.A. — Redesign criativo dos mapas (v0.8)
 
-Redesign das duas camadas CSV (física + decorativa) dos 4 setores do I.S.A.:
-floresta, caverna, copas e arena. Nenhum sprite, tileset, background ou arte
-de cenário foi alterado. A mudança está em **onde** e **como** os assets
-existentes são usados.
+Direção de level design, composição ambiental e ritmo dos minérios nos 4
+setores (floresta, caverna, copas, arena). Sprites, tilesets, backgrounds e a
+arte de cenário **não foram alterados**: a mudança está em como os assets são
+usados nas duas camadas CSV e no JSON de estruturas.
 
 ## Como instalar
 
 Copie o conteúdo de `ISA_candidata_polida/` por cima da pasta do projeto
-(mesmos caminhos). São 10 arquivos de jogo e uma pasta nova de ferramentas:
+(mesmos caminhos). Os originais estão em `originais/` e a v0.7 está no
+histórico do git deste repositório.
 
-| Arquivo | O que mudou |
+| Arquivo | Mudança |
 |---|---|
-| `assets/levels/setores/floresta.csv` | geometria nova |
-| `assets/levels/setores/caverna.csv` | geometria nova |
-| `assets/levels/setores/copas.csv` | geometria nova |
-| `assets/levels/setores/arena.csv` | só o preenchimento do piso (a geometria da luta é idêntica) |
+| `assets/levels/setores/floresta.csv` | geometria nova, **404 colunas** (eram 374) |
+| `assets/levels/setores/caverna.csv` | geometria nova (galeria de mina, poço de cristais, gruta inferior) |
+| `assets/levels/setores/copas.csv` | geometria nova, **171 colunas** (eram 131) |
+| `assets/levels/setores/arena.csv` | igual à v0.7 (geometria da luta intocada) |
 | `assets/levels/decoracoes/*_decor.csv` (4) | composição nova |
-| `assets/levels/estruturas_cenario.json` | árvores, arcos e suportes reassentados no terreno novo |
-| `ferramentas/auditar_level_design.py` | 1 linha: cria `docs/` antes de gravar o relatório |
-| `ferramentas/redesign_mapas/` (novo) | kit de autoria, renderizador de camadas, capturas no jogo |
-
-Os originais estão em `originais/assets/levels/` (backup recuperável).
-Os CSVs mantêm o formato de cada arquivo original: separador `,`, sem BOM,
-CRLF (copas: LF) e quebra de linha final.
+| `assets/levels/estruturas_cenario.json` | árvores, arcos, suportes, conectores reassentados |
+| `src/nivel_dados.py` | larguras de floresta e copas em `SETORES_GERADOS` (referência usada pelos validadores) |
+| `MAPA-CSV.md` | só as tabelas de tamanho e de regiões |
+| `ferramentas/auditar_ritmo_minerios.py` | **novo**: auditoria de espaçamento dos minérios por tempo de percurso |
+| `ferramentas/auditar_level_design.py` | 1 linha (cria `docs/` antes de gravar o relatório) |
+| `ferramentas/redesign_mapas/` | módulos de autoria por setor, renderizador e capturas no jogo |
 
 ---
 
-## 1. Diagnóstico (antes)
+## 1. O que acontece num minério (verificado no código)
 
-Auditoria feita no código antes de mexer em qualquer arquivo: `src/world.py`,
-`src/setores.py`, `src/decoracoes.py`, `src/estruturas_cenario.py`,
-`src/passagens.py`, `utils.extrair_marcadores`, `constants.py` e a física em
-`src/character.py`.
+- O minério é um **marcador `91` na camada física**, não na decorativa.
+  `utils.extrair_marcadores` apaga o marcador da grade e `setores.criar_minerio`
+  cria a entidade apoiada no bloco de baixo.
+- `main._verificar_coletas`: **tocar no minério abre o quiz na hora**, desde que
+  haja pergunta disponível. Se a fatia da fase acabou, o jogo remonta a lista
+  antes.
+- Respondendo, certo ou errado, o minério sai do mapa (`indice += 1`).
+  ESC (`cancelar_quiz`) devolve o minério com 1,5 s de imunidade
+  (`minerio_cobre.liberar`).
+- Por isso, dois minérios próximos no percurso significam sair de uma pergunta e
+  cair em outra. O espaçamento é parte do game design.
+- A quantidade exigida pelo projeto (`teste_level_design_profissional`: ≥ 72) foi
+  mantida: **72 minérios** (32 floresta + 25 caverna + 15 copas).
 
-**Como o jogo lê as camadas**
-- CSV físico: IDs de `constants.TILE_SPRITES`. Têm colisão só os IDs em
-  `SOLID_TILES`. O `67` (escora de raiz) é desenhado, mas não tem colisão.
-  Marcadores (30–45, 90–96) são apagados da grade ao carregar.
-- CSV decorativo: IDs 100–123 (`src/decoracoes_offline.ARTE`), sem colisão.
-  Precisa ter a mesma dimensão do CSV físico.
-- Ordem de render (`main._desenhar_cena`): fundo → estruturas → **decoração →
-  tiles** → passagens → entidades → atmosfera. Decoração é desenhada **atrás**
-  dos tiles, então uma decoração numa célula sólida é invisível. Por isso o
-  auditor já proíbe esse caso.
-- Física real: tile = 48 px. Pulo simples = 1,5 tile, pulo duplo ≈ 3, alcance
-  de 2,5 tiles. A regra do validador do projeto é degrau ≤ 2 e vão ≤ 2, e
-  todo o redesign respeita isso.
+## 2. Auditoria de ritmo (nova) e diagnóstico
 
-**Problemas encontrados**
+`ferramentas/auditar_ritmo_minerios.py` mede **tempo de percurso real**, não
+distância em células. Ela usa o mesmo grafo de posições em pé do
+`validar_fisica_real.py`: cada movimento é simulado com `Character.move`, o
+custo é em quadros a 60 FPS e a penalidade artificial por pulo é descontada.
+Para cada par de minérios, calcula o menor tempo do ponto em que se pega um
+até tocar o outro, somando nas pontas a caminhada até o minério.
 
-| Setor | Problema | Por que prejudica |
-|---|---|---|
-| Floresta | Subsolo com faixas verticais `DDDD`/`ssss` repetidas a cada 12 colunas, deslocadas na diagonal | padrão de algoritmo visível em toda a tela |
-| Floresta | Duas "pirâmides" de degraus flutuando sobre uma laje de rocha (`66`), com o jogador passando por baixo | massa de terra sem apoio; lê como bloco colado, não como relevo |
-| Floresta | 38 componentes sólidos, 18 deles com ≤ 4 tiles soltos no ar | "bloco no meio do nada" |
-| Floresta | Uma faixa de grama enterrada no subsolo (linha 33, col 343–361) | erro visível |
-| Floresta | Rochas decorativas (`122`) espalhadas uma a uma, sem grupo | ruído visual |
-| Caverna | Corredor quase plano, tetos em escada | pouca variação espacial |
-| Copas | Troncos sólidos em **escada diagonal** (`|!||||!`) do fundo do mapa até cada plataforma | parecem rampas de tijolo; escondem e brigam com as árvores desenhadas |
-| Copas | Toquinhos (`106`) com folhas (`107`) dos dois lados formando "cruzes" repetidas; pares de cipó idênticos sob cada plataforma | repetição óbvia, poluição |
-| Arena | Piso de templo com diagonal `tTTTT` repetida a cada 5 colunas | padrão artificial |
-| Arena | 44 runas (`113`) em pilhas quebradas, com buracos, soltas no ar | 19 decorações sem apoio |
-
-A linha de base passava nos validadores (0 erros de física). Ou seja, o
-problema era de composição e leitura, não de um mapa quebrado.
-
-## 2. O que foi feito em cada mapa
-
-### Floresta (374 × 44): introdução → exploração → desenvolvimento → desafio → conclusão
-
-Terreno descrito como um perfil de altura escolhido coluna a coluna (nada
-aleatório na geometria):
-
-| Colunas | Trecho | Decisões |
-|---|---|---|
-| 0–37 | Clareira | Plana para aprender os controles. Placa no início. Primeira passarela baixa (2 tiles) com minério, que ensina o pulo |
-| 38–80 | Colina | Patamares de larguras irregulares, árvore no topo, passarela de raiz cruzando o tronco |
-| 79–95 | Ravina | Vale de 3 degraus com a boca da caverna (`30`) no fundo. Rochas e fungos emolduram a entrada, e o vão central fica limpo |
-| 95–160 | Planície | Patamares, passarelas em escada (28 → 26), 1ª cobra numa área plana larga, chegada da caverna (`42`) |
-| 161–217 | Colina da Árvore Guardiã | Face oeste íngreme, platô com cobra, face leste longa. A colina agora é uma massa de terra apoiada no chão, não uma pirâmide flutuante. Rota alta opcional (passarela na linha 19) com 2 minérios |
-| 218–300 | Baixada | Respiro: lago raso (água `115` sobre o fundo, juncos nas margens), tucano em campo aberto, bosque |
-| 301–373 | Final | Subida, vala com ponte de raiz (dá para atravessar por cima ou descer pela vala), platô da Árvore-Mãe com o cipó das copas (`31`) ao pé dela e passarelas de recompensa |
-
-- Subsolo: terra com variação por manchas suaves e pedras em pequenos grupos
-  orgânicos, em vez de faixas. Grama com raízes (`13`) só perto dos troncos das
-  árvores grandes; grama com flores (`12`) em manchas.
-- Árvores grandes (`arvore_antiga*`) reposicionadas sobre trechos planos, com
-  a base calculada a partir do terreno real (o mesmo afundamento de 1 tile do
-  original).
-
-### Caverna (251 × 44)
-
-Piso e teto viraram dois perfis desenhados: tudo entre eles é ar, o resto é
-rocha.
-
-| Colunas | Seção |
+| Medida | Critério |
 |---|---|
-| 0–24 | Galeria de entrada (chegada `40`) |
-| 25–57 | Corredor descendente: aranha num teto baixo, cobra num patamar de 11 tiles |
-| 58–99 | Câmara principal alta, com rocha pendente e andaimes de mina (`61`) em escada (34 → 32 → 30), cada um com minério; suporte de mina sob o andaime alto |
-| 100–124 | Passagem espremida: teto constante de 3 tiles, piso subindo |
-| 125–159 | Galeria dos cristais: veios de cristal (`26`) na rocha perto do ar, cristais no chão junto aos veios, tucano no espaço alto |
-| 160–199 | Salão de combate: piso largo, 2 cobras, andaimes laterais |
-| 200–217 | Corredor fundo com poça d'água, musgo e cogumelos |
-| 218–250 | Câmara de saída: subida até a saída (`32`), com tochas dos dois lados |
+| vizinho mais próximo < 2,0 s | **ERRO**: pergunta colada na outra |
+| vizinho < 3,5 s | aviso (meta) |
+| mais de 4 minérios nos próximos 15 s de percurso | aviso (meta) |
+| inimigo a < 3 tiles, decoração na célula do minério ou ao lado | aviso |
 
-- Estalactites só sob rocha (nunca sob madeira) e no máximo 2 lado a lado.
-- Tochas marcam onde houve trabalho humano (andaimes e saída).
-- Arcos, colunas e cristais grandes assentados no piso novo (afundados 2 tiles,
-  como no original). Suportes de mina com altura escolhida pelo vão real
-  (`isa_mine_support_<altura>.png`).
+Mesma régua aplicada às três versões:
+
+| Versão | Erros | Floresta (mediana / mín.) | Caverna | Copas |
+|---|---|---|---|---|
+| Original | **55** | 2,6 s / 0,8 s | 1,8 s / 1,1 s | 1,6 s / 0,7 s |
+| v0.7 | **68** | 2,0 s / 1,0 s | 1,8 s / 0,8 s | 1,5 s / 0,9 s |
+| **v0.8** | **0** | **3,3 s / 2,2 s** | **4,3 s / 2,0 s** | **3,6 s / 2,0 s** |
+
+(intervalo entre minérios na ordem em que o jogador os encontra)
+
+A v0.7 tinha **piorado** o ritmo: eu tinha distribuído os minérios pela
+distância horizontal e muitos ficaram a 1 s um do outro. A auditoria nova
+deixou isso visível.
+
+**A conta que guiou a v0.8:** 72 minérios num percurso de ~190 s davam 2,6 s
+por minério. Só reposicionar não bastava, e afrouxar a meta seria esconder o
+problema. A solução foi **aumentar o percurso jogável com exploração**:
+grutas, copas, galerias e desvios verticais, e duas regiões novas (+30 colunas
+na floresta, +40 nas copas).
+
+## 3. Decisões criativas por setor
+
+### Floresta: ambiente vivo (404 × 44)
+
+| Colunas | Região | Decisão |
+|---|---|---|
+| 0–37 | Clareira | Spawn plano e seguro; morrinho; placa; 1º pulo numa passarela com minério |
+| 38–76 | Colina | Patamares irregulares e árvore no topo. **Desvio vertical:** passarela + galho preso ao tronco, com minério no alto |
+| 77–96 | Ravina | Vale de 4 degraus, boca da caverna emoldurada por rochas e fungos, vão central limpo |
+| 97–127 | **Clareira afundada** (nova) | Bacia com minério no fundo. Um tronco caído cruza por cima: atalho que pula o minério, escolha do jogador |
+| 128–160 | Planície | Patamar da árvore, 1ª cobra, chegada da caverna |
+| 161–216 | **Árvore Guardiã** | Face oeste íngreme, platô com cobra e passarela alta. **Gruta escondida** sob a árvore: porta pequena num paredão, túnel curto, salão com fungos luminosos e raízes penduradas, minério dentro. Placa avisa "há algo no paredão" |
+| 217–245 | Lago | Lâmina d'água contínua, juncos nas margens |
+| 246–275 | **Outeiro do mirante** (novo) | Quebra a planura da baixada: rochas agrupadas, flores no topo, mirante com minério |
+| 276–330 | Baixada | Campo do tucano, tronco caído, **toca** que desce para um túnel curto sob a cobra (minério) |
+| 331–403 | **Árvore-Mãe** | Vala com ponte, platô com o cipó das copas e **escalada pela copa** em 5 passarelas até o cume, dentro das folhas (minério). O clímax vertical do setor |
+
+### Caverna: exploração e descoberta (251 × 44)
+
+- **Galeria de mina superior** (rota alternativa à passagem espremida): andaimes
+  em escada na câmara principal, patamar de madeira com corda de corrimão,
+  túnel escorado (postes de mina do chão ao teto), tochas, aranha de guarda.
+  Ela sai por cima da galeria de cristais.
+- **Poço dos cristais**: depressão com lâmina d'água no fundo e cristais nas bordas.
+- **Gruta inferior** sob o salão de combate: poço de descida com andaimes em
+  ziguezague a cada 2 linhas (desce e sobe), cristais, poça, estalactites,
+  5 minérios a ~2,2 s um do outro.
+- Mantidos: galeria de entrada, câmara alta com rocha pendente, salão de
+  combate, corredor com poça e câmara de saída com tochas.
 - Mantidos de propósito para os testes: chegada `40` perto de (12,27) e as
-  células (136,14) e (147,18) em posições "ruins" para o tucano (casos
-  negativos do `teste_voadores.py`).
+  células (136,14) e (147,18) como casos ruins do tucano.
 
-### Copas (131 × 44)
+### Copas: verticalidade e natureza (171 × 44)
 
-As árvores da arte (`estruturas_cenario.json`) **não mudaram de lugar**: elas
-ditam a geometria. A camada física virou decks finos (`14`/`15`) e galhos
-(`62`) que cruzam essa arte na altura certa:
+A v0.7 tinha ficado vazia (25 decorações, uma linha de decks). Medi na arte a
+posição dos galhos de cada árvore:
 
-- deck de chegada sob o pórtico, cruzando o tronco de fundo;
-- galhos subindo apoiados num ramo conector diagonal (reposicionado);
-- deck da Árvore Ancestral na altura da bifurcação, com um galho opcional na
-  copa (apoiado num toquinho de tronco);
-- deck do ninho: o ninho foi baixado 1 tile para pousar no deck, e há um minério
-  dentro dele;
-- deck da Árvore Espiral, com o tucano voando na copa (faixa de voo limpa);
-- deck final com lanternas penduradas, levando ao portal ancestral da arena.
+- árvores de fundo: galho esquerdo nas linhas 20–21, direito nas 25–27,
+  esquerdo baixo nas 29–31;
+- Ancestral: copa nas linhas 21–28;
+- Espiral: copa nas linhas 11–18.
 
-Todos os vãos são de 1 tile e todos os degraus de até 2.
+**Toda plataforma se apoia num elemento da arte** (galho, bifurcação, copa,
+raiz, conector ou toquinho), registrado ao lado de cada plataforma em
+`copas.py`. Nenhum tronco artificial em escada.
 
-### Arena (41 × 44)
+- **Árvore Ancestral**: deck baixo; **subida pela copa até o cume**; rota alta
+  pelo galho esquerdo da árvore de fundo, caindo no ninho; **rota baixa pelas
+  raízes**.
+- **Ninho**: pousado no deck, com o minério dentro.
+- **Galho baixo da árvore de fundo** e **raízes da Espiral**: desvio inferior com minérios.
+- **Árvore Espiral**: deck na bifurcação, cume na copa, tucano voando na copa
+  (faixa de voo limpa).
+- **Árvore Vigia** (nova, +40 colunas): ponte de galhos, galho esquerdo da
+  árvore, deck no galho direito preso por um toquinho, subida pela copa até o
+  deck final.
+- Vegetação densa nos decks, folhas brotando na ponta dos galhos, lianas de
+  comprimentos variados e ramos sob todas as plataformas, lanternas no caminho
+  do portal. São 130 decorações; na v0.7 eram 25.
 
-Geometria da luta intocada (piso, plataformas `63`, marcadores e
-`AREA_BOSS`). O piso perdeu o padrão diagonal. As runas soltas viraram dois
-obeliscos apoiados no chão (3 e 2 de altura, sem espelhar). Estandartes e
-lanternas ficam pendurados nas plataformas altas e as tochas ficam no chão e
-nas pontas das plataformas. O centro da luta ficou limpo.
+### Arena: clareza e impacto
 
-## 3. Lógica de composição das decorações
+A geometria da luta não muda. A composição virou uma **moldura**: dois
+obeliscos de runas iguais marcam as bordas do palco (colunas 14 e 34), cada um
+com uma tocha do lado de fora. Os estandartes e as lanternas ficam pendurados
+nas plataformas altas. O **centro (16–32) fica limpo**, para ler o Gorila e os
+projéteis.
 
-Implementada em `ferramentas/redesign_mapas/kit.py` (`Compositor`). A
-decoração é posicionada **depois** da geometria e lendo a geometria:
+### Decorações (regras gerais)
 
-1. **Âncora por tipo de sprite**, medida pela área opaca de cada PNG:
-   - de chão: flor, samambaia, arbusto, cogumelo, fungo, cristais, pedra,
-     placa, tocha, raiz, água e runas. Só entram em célula livre com bloco
-     sólido logo abaixo;
-   - pendurados: estalactite, liana, cipó, ramos, lanterna e bandeira. Só
-     entram com bloco sólido logo acima.
-2. **Peças narrativas à mão**: placas (início, ravina, rumo às copas), moldura
-   da boca da caverna, tochas da saída, lanternas do caminho da arena.
-3. **Zonas limpas**: vão das passagens, chegadas, spawn, fio das aranhas,
-   faixa de voo do tucano, 1 célula de cada lado dos minérios e centro da luta.
-4. **Densidade por zona e manchas**: ruído suave decide *onde* há manchas de
-   vegetação; vinhetas pequenas e variadas (1–3 peças) preenchem cada mancha,
-   com vazio entre elas. Nunca "toda célula vazia".
-5. **Contexto**: raízes e cogumelos ao pé das árvores, cristais junto aos
-   veios de cristal, musgo nas partes úmidas, nada pendurado sob madeira e
-   galhos finos sem vegetação em cima (leitura do pulo).
+- **Âncora por sprite**, medida na área opaca de cada PNG: as de chão só entram
+  com bloco embaixo e as penduradas só com bloco em cima.
+- Nada pendurado sob madeira, nem no teto liso dos túneis escavados.
+- Zonas limpas em volta dos portais, chegadas, spawn, faixas de voo, fio das
+  aranhas e minérios (nenhuma decoração na célula do minério ou ao lado).
+- Densidades diferentes por região; vegetação em manchas com vazios entre elas.
 
-## 4. Resultados dos testes (executados)
-
-Todos rodados nesta sessão, sobre os mapas finais:
+## 4. Validação (executada nesta sessão, sobre os arquivos finais)
 
 | Verificação | Resultado |
 |---|---|
 | `python testes/rodar_todos.py` | **19/19 aprovados** |
-| `python ferramentas/validar_fisica_real.py` (BFS com o `Character.move` real, pulo duplo) | **0 erros, 0 avisos**. Todas as superfícies pisáveis, todos os minérios/maçãs alcançáveis, nenhuma posição sem saída |
+| `python ferramentas/validar_fisica_real.py` | **0 erros, 0 avisos**. Todas as superfícies pisadas nos 4 setores; todos os minérios alcançáveis; nenhuma posição sem saída |
+| `python ferramentas/auditar_ritmo_minerios.py` | **0 erros**. 83 avisos de meta: 58 vizinhos entre 2,0 e 3,5 s e 25 janelas com mais de 4 minérios em 15 s |
 | `python validar_dados.py` | 0 erros, 0 avisos |
-| `testes/teste_level_design_profissional.py` (auditor) | aprovado: 84 minérios (mínimo 72), marcadores apoiados, decoração fora de colisão |
-| `testes/teste_voadores.py` | 3 tucanos reais aprovados e 3 casos negativos reprovados como esperado |
-| Reconstrução pelas ferramentas | idempotente (rodar de novo gera arquivos byte a byte iguais) |
+| Auditor do projeto (`teste_level_design_profissional`) | aprovado, 72 minérios |
+| Instalação limpa | a cópia instalada a partir desta pasta é idêntica à versão validada; o `build.py` regenera os mesmos bytes |
 
-Métricas antes → depois (calculadas sobre os CSVs):
+Problemas que os validadores pegaram durante o trabalho e que foram corrigidos
+no mapa (nenhum validador foi afrouxado):
 
-| Setor | Pedaços sólidos de ≤ 4 tiles soltos | Decorações sem apoio | Decorações |
-|---|---|---|---|
-| Floresta | 18 → **0** | 0 → 0 | 112 → 121 |
-| Caverna | 2 → **0** | 0 → 0 | 57 → 112 |
-| Copas | 3 → **0** | 2 → **0** | 172 → 25 |
-| Arena | 0 → 0 | 19 → **0** | 51 → 13 |
+- O tronco caído fechava a clareira afundada por cima (só a física real viu).
+- O paredão da gruta deixaria a metade leste da floresta sem volta (resolvido
+  com um degrau de raiz).
+- Minérios sob plataformas, sem espaço livre.
+- Cobras sob galhos e andaimes.
+- Um morrinho ocupava a célula que `teste_csv_edicao` usa ao lado do spawn.
+- 13 pares de minérios colados.
 
-**Validação visual.** `imagens/mapas/` tem as três visões pedidas para cada
-setor, antes e depois: `*_1_fisica`, `*_2_decor` e `*_3_combinada` (com o
-background original). `imagens/jogo_antes/` e `imagens/jogo_depois/` são
-capturas do **loop real do jogo** (`main.py`, câmera do jogador, HUD e
-atmosfera) em 17 pontos-chave. Os ajustes foram iterados sobre essas imagens:
-pirâmide da colina, ravina rasa, lago cortado por minério, estalactites sob
-madeira, ninho escondido por um galho e obelisco caindo sobre a plataforma
-foram todos corrigidos a partir dos renders.
+**Validação visual.**
 
-## 5. Pendências e observações
+- `imagens/mapas_v08/`: as três visões de cada setor (física, decorativa e
+  combinada com o background original).
+- `imagens/comparacao/`: original × v0.7 × v0.8 na visão combinada.
+- `imagens/jogo_v08/`: 22 capturas do **loop real do jogo** (câmera, HUD,
+  atmosfera, inimigos).
+- `imagens/jogo_original/` e `imagens/jogo_v07/`: capturas das versões anteriores.
 
-- **Não houve playtest humano.** A jogabilidade foi provada pela física real
-  simulada, pelos testes automatizados e pelas capturas do loop real. Vale uma
-  passada jogando, principalmente nas copas.
-- **Copas: queda no vazio continua dando game over** (já era assim no
-  original). Os vãos agora são todos de 1 tile, mas não há "rede" embaixo.
-  Se quiserem queda sem morte, a solução é uma camada de galhos baixa com
-  caminho de volta, e isso muda o design da fase.
-- **Copas ficou intencionalmente mais limpa** (172 → 25 decorações): o céu e as
-  árvores grandes já carregam a cena. Dá para adensar em `copas.py`, na lista
-  `VINHETAS`.
-- Floresta: as 6 peças `isa_polimento_raiz_ancorada_*` do JSON foram removidas,
-  porque ancoravam plataformas que deixaram de existir. As escoras `67` fazem
-  esse papel agora. Os PNGs continuam na pasta.
-- Documentação do projeto não foi editada: `MAPA-CSV.md` ainda descreve as
-  seções antigas da caverna e repete 3 vezes o parágrafo da camada de
-  decorações; `assets/levels/decoracoes/README.md` cita IDs 100–117, mas já
-  existem 118–123.
-- Ambiente: `teste_estatisticas.py` e `teste_boss.py` precisam do pacote
-  `fpdf2` (já está no `requirements.txt`). O zip recebido não trazia a pasta
-  `docs/`, e por isso o auditor falhava ao gravar o relatório (corrigido).
+Ajustes feitos a partir das imagens:
 
-## Ferramentas (`ISA_candidata_polida/ferramentas/redesign_mapas/`)
+- A primeira gruta ficou grande demais e virou uma "janela" sob uma laje.
+  Reduzida para um abrigo.
+- A toca foi encurtada pelo mesmo motivo.
+- Estalactites saíram do teto dos túneis.
+- Um galho escondia o ninho na v0.7.
+
+`auditoria/` traz os relatórios de ritmo (original, v0.7 e v0.8) e a saída dos testes.
+
+## 5. Pendências e limites honestos
+
+- **Não houve playtest humano.** A jogabilidade foi provada por simulação com a
+  física real, testes automáticos e capturas do loop real.
+- **Os 72 minérios são o limite do ritmo.** Com a meta de 2 s não há erro, mas
+  58 minérios têm um vizinho entre 2 e 3,5 s. Se o projeto puder baixar o
+  mínimo (por exemplo, para 60), dá para chegar a ~4 s entre perguntas sem
+  mexer na geometria. Essa decisão é da equipe.
+- **Floresta e copas ficaram mais largas.** O jogo lê a largura do CSV; só
+  `nivel_dados.py` e a tabela do `MAPA-CSV.md` foram atualizados. O
+  `gerar_mundo.py` continua gerando o mundo antigo, mas não sobrescreve CSVs
+  editados.
+- **Grutas e tocas na floresta mostram o fundo da floresta** por dentro, porque
+  o jogo não tem tile de parede de fundo. Por isso foram mantidas pequenas,
+  com porta estreita.
+- **Copas: queda no vazio continua dando game over** (como no original). Todos
+  os vãos são de no máximo 2 tiles.
+- Documentação antiga não revisada: a seção de encontros do `MAPA-CSV.md` e o
+  README das decorações, que ainda cita os IDs 100–117.
+
+## Ferramentas
 
 ```
 python ferramentas/redesign_mapas/build.py . floresta,caverna,copas,arena                  # só confere
 python ferramentas/redesign_mapas/build.py . floresta,caverna,copas,arena --sobrescrever   # grava
+python ferramentas/auditar_ritmo_minerios.py --processos 4 --lista                         # ritmo
 python ferramentas/redesign_mapas/renderizar_camadas.py . all renders 0.5 --grid           # 3 visões
 python ferramentas/redesign_mapas/capturas_no_jogo.py . capturas                           # loop real
 ```
 
-Cada setor é um módulo legível (`floresta.py`, `caverna.py`, `copas.py`,
-`arena.py`) com o perfil do terreno, as plataformas, os marcadores e as
-regras de decoração escritos explicitamente. Ajustar o mapa = editar essas
-listas, gravar com `--sobrescrever` e rodar os validadores. O `build.py`
-sobrescreve edições à mão feitas depois nos CSVs: use com consciência, como o
-`gerar_mundo.py`.
+Cada setor é um módulo legível com o perfil do terreno, as cavidades, as
+plataformas (e no que cada uma se apoia), os marcadores e as regras de
+decoração escritos explicitamente. O `build.py` sobrescreve edições à mão
+feitas depois nos CSVs: use com consciência.

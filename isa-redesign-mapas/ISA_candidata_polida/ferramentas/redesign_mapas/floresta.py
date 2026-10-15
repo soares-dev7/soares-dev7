@@ -1,78 +1,99 @@
-"""FLORESTA — 374 x 44. Setor inicial (fase 1).
+"""FLORESTA v0.8 — 404 x 44. Setor inicial (fase 1): "a floresta viva".
 
-Progressão (colunas):
-    0-37    Introdução   clareira plana, placa, 1ª passarela baixa (ensina o pulo)
-   38-80    Exploração   colina suave com árvore no topo e passarela de raiz
-   81-100   Ravina       vale raso com a boca da caverna (30), rochas e fungos
-  101-160   Desenvolv.   planície em patamares, 1ª cobra, chegada da caverna (42)
-  161-215   Desafio      colina da Árvore Guardiã: terraços, cobra no platô,
-                         passarela alta opcional com minérios
-  216-300   Respiro      baixada com lago raso, tucano, cobra, bosque
-  301-373   Conclusão    subida final, vala com ponte de raiz, platô da
-                         Árvore-Mãe com o cipó para as copas (31) e chegada (43)
+Percurso (colunas) e o que cada trecho oferece:
+    0-37    Clareira       relevo suave, placa, 1º pulo numa passarela baixa (minério)
+   38-76    Colina         árvore no topo; passarela + galho alto no tronco (minério de desvio)
+   77-96    Ravina         vale de 4 degraus com a boca da caverna (30) emoldurada
+   97-127   Clareira afundada  bacia com minério no fundo; um tronco caído cruza
+                           por cima (atalho que pula o minério, escolha do jogador)
+  128-160   Planície       patamar da árvore, 1ª cobra, chegada da caverna (42)
+  161-216   Árvore Guardiã colina monumental: face oeste em terraços, platô com a
+                           árvore e cobra, passarela alta a leste e uma GRUTA
+                           escondida dentro da colina, com porta no paredão leste
+  217-300   Baixada        lago raso, campo do tucano, tronco caído, toca entre raízes
+  301-373   Árvore-Mãe     vala com ponte, platô com o cipó das copas (31) e uma
+                           escalada pela copa da árvore até o cume (minério)
+
+Minérios: 25, cada um num ponto de descoberta (plataforma, fundo de vale,
+gruta, copa). Regra seguida: nenhum minério de chão sob um minério de
+plataforma (a queda encurtaria o intervalo entre perguntas) e trechos de
+caminhada sem interação entre eles. Medido por ferramentas/auditar_ritmo_minerios.py.
 """
 from kit import Grade, Compositor, perfil, checar_perfil, ruido, acaso, VAZIO
 
-L, C = 44, 374
+L, C = 44, 404
 
-# IDs (constants.py)
 GRAMA, GRAMA_FLOR, GRAMA_RAIZ = 1, 12, 13
 TERRA, TERRA_FUNDA, TERRA_PEDRA = 2, 20, 22
 PONTE, PASSARELA, ESCORA = 60, 64, 67
 SPAWN, MINERIO, COBRA, TUCANO = 90, 91, 92, 93
 P_CAVERNA, P_COPAS, CH_CAVERNA, CH_COPAS = 30, 31, 42, 43
 
-# decorações (src/decoracoes_offline.ARTE)
 FLOR, SAMAMB, COGU, ARBUSTO, PLACA, AGUA, FLOR_ROXA = 100, 101, 110, 112, 114, 115, 117
 LIANA, FUNGO, RAMOS, RAIZ_ARCO, PEDRA, FOLHAGEM = 118, 119, 120, 121, 122, 123
 
 PERFIL = [
-    (0, 30), (18, 29), (25, 30),                          # clareira
-    (38, 29), (40, 28), (45, 27), (52, 26), (61, 27),     # colina (patamares irregulares)
-    (63, 28), (69, 29), (72, 30),
-    (79, 31), (82, 32), (84, 33), (91, 32), (93, 31),     # ravina da caverna
-    (95, 30),
-    (111, 29), (119, 28), (127, 29),                      # planície em patamares
-    (161, 28), (163, 27), (166, 26), (168, 24),           # colina da guardiã:
-    (171, 23), (179, 21),                                 # face oeste íngreme,
-    (197, 22), (200, 23), (202, 24), (206, 25),           # face leste longa
-    (207, 26), (211, 27), (213, 28), (215, 29), (218, 30),
-    (222, 31), (228, 32), (240, 31), (246, 30),           # baixada e lago
-    (270, 29), (286, 28), (296, 27), (302, 26), (308, 25),
-    (312, 26), (313, 27), (314, 28), (321, 27), (322, 26),  # vala
-    (323, 25), (326, 24), (366, 23),                      # platô da Árvore-Mãe
+    (0, 30), (23, 29), (27, 30),                                   # clareira (spawn plano; morrinho 23-26)
+    (38, 29), (41, 28), (45, 27), (49, 26), (52, 25),              # colina
+    (61, 26), (64, 27), (67, 28), (71, 29), (74, 30),
+    (78, 31), (81, 32), (84, 33), (91, 32), (93, 31), (95, 30),    # ravina
+    (101, 31), (103, 32), (105, 33), (117, 32), (119, 31),         # clareira afundada
+    (121, 30), (124, 29), (133, 28), (144, 29),                    # planície
+    (161, 28), (163, 27), (166, 26), (168, 24), (171, 23),         # Guardiã, face oeste
+    (179, 21),                                                     # platô
+    (196, 22),                                                     # ombro leste (teto do túnel)
+    (200, 26), (207, 27), (210, 28), (213, 29), (216, 30),         # paredão da gruta
+    (222, 31), (228, 32), (240, 31), (246, 30),                    # lago
+    (250, 29), (254, 28), (258, 27), (265, 28), (269, 29),         # outeiro do mirante
+    (273, 30),
+    (302, 31), (308, 30), (311, 29),                               # toca
+    (324, 28), (326, 27), (332, 26), (338, 25),
+    (342, 26), (343, 27), (344, 28), (351, 27), (352, 26),         # vala
+    (353, 25), (356, 24),                                          # platô da Árvore-Mãe
 ]
-LAGO = (228, 239)          # fundo do lago (linha 32)
+LAGO = (228, 239)
+# Gruta dentro da colina da Guardiã: (c0, c1, linha_topo, linha_base) de ar
+GRUTA = [(187, 193, 23, 25),        # salão sob a árvore (teto de 2 tiles de terra)
+         (194, 199, 24, 25)]        # túnel curto até a porta no paredão (col 200)
 
-# Passarelas: (c0, c1, linha, tile, colunas_de_escora)
-PLATAFORMAS = [
-    (28, 33, 28, PASSARELA, (28, 33)),     # 1º pulo
-    (51, 57, 24, PASSARELA, (51, 57)),     # topo da colina
-    (104, 109, 28, PASSARELA, (104, 109)),
-    (111, 115, 26, PASSARELA, (115,)),     # degrau acima da anterior
-    (121, 126, 26, PASSARELA, (121, 126)),
-    (197, 206, 19, PASSARELA, (197, 202, 206)),  # rota alta da guardiã
-    (248, 252, 28, PASSARELA, (248, 252)),
-    (288, 293, 25, PASSARELA, (288, 293)),
-    (314, 320, 25, PONTE, ()),             # ponte sobre a vala
-    (360, 365, 22, PASSARELA, (360, 365)),
-    (367, 372, 20, PASSARELA, (372,)),
+PLATAFORMAS = [  # (c0, c1, linha, tile, colunas de escora até o chão)
+    (28, 33, 28, PASSARELA, (28, 33)),          # 1º pulo
+    (50, 55, 23, PASSARELA, (50,)),             # passarela da colina
+    (57, 61, 21, PASSARELA, ()),                # galho alto, no tronco da árvore
+    (102, 118, 29, PASSARELA, (110,)),          # tronco caído sobre a clareira (encostas livres)
+    (196, 204, 19, PASSARELA, (196, 199)),      # rota alta da Guardiã (ponta em balanço)
+    (201, 203, 24, PASSARELA, (203,)),          # degrau de raiz ao lado da porta da gruta
+    (259, 263, 25, PASSARELA, ()),              # mirante no topo do outeiro
+    (292, 300, 28, PASSARELA, (292, 300)),      # tronco caído na baixada
+    (344, 350, 25, PONTE, ()),                  # ponte sobre a vala
+    (390, 394, 22, PASSARELA, (390, 394)),      # escalada da Árvore-Mãe
+    (396, 400, 20, PASSARELA, (400,)),
+    (390, 394, 18, PASSARELA, ()),
+    (384, 388, 16, PASSARELA, ()),
+    (378, 382, 14, PASSARELA, ()),              # cume, dentro da copa
 ]
+ESCORAS_ENTRE = [(390, 19, 21)]                 # liga a passarela 18 à de baixo
 
-# Árvores grandes (estruturas_cenario.json): (imagem, coluna_do_json)
-# O tronco de arvore_antiga cai 1,2 tile à direita do centro -> coluna+1.
+# O tronco de arvore_antiga fica na coluna do JSON (medido na arte).
 ARVORES = [("arvore_antiga.png", 19), ("arvore_antiga_alt.png", 56),
            ("arvore_antiga.png", 97), ("arvore_antiga_alt.png", 139),
-           ("arvore_antiga_alt.png", 175), ("arvore_antiga.png", 223),
-           ("arvore_antiga_alt.png", 252), ("arvore_antiga.png", 279),
-           ("arvore_antiga_alt.png", 298), ("arvore_antiga.png", 329)]
+           ("arvore_antiga_alt.png", 175), ("arvore_antiga.png", 225),
+           ("arvore_antiga_alt.png", 282), ("arvore_antiga.png", 315),
+           ("arvore_antiga_alt.png", 328), ("arvore_antiga.png", 359)]
+
+MINERIOS_CHAO = [15, 46, 70, 82, 94, 108, 119, 130, 146, 157, 170, 183, 212, 227,
+                 240, 252, 270, 286, 312, 326, 336, 347, 363]
+MINERIOS_PLAT = [(31, 28), (59, 21), (203, 19), (298, 28), (261, 25), (391, 22), (379, 14)]
+MINERIOS_GRUTA = [(190, 26), (313, 34)]
+# Toca sob a baixada: desce do fundo da depressão (272-277) e corre sob o chão.
+TOCA = [(306, 306, 31, 31), (307, 307, 31, 32), (308, 315, 32, 33)]
 
 
 def construir():
     alt = perfil(PERFIL, C)
-    checar_perfil(alt, 2, "floresta")
+    checar_perfil(alt, 4, "floresta")   # 4 só no paredão da gruta (col 200): o degrau de raiz 201-203 liga
     t = Grade(L, C)
-    troncos = [col + 1 for _, col in ARVORES] + [190, 353]
+    troncos = [col for _, col in ARVORES] + [190, 383]   # tronco medido na arte: na própria coluna
 
     for c in range(C):
         topo = alt[c]
@@ -85,7 +106,7 @@ def construir():
                     v = TERRA
                 elif perto_tronco:
                     v = GRAMA_RAIZ
-                elif ruido(c, 0, 11, 5.0) > 0.70:
+                elif ruido(c, 0, 11, 5.0) > 0.68:
                     v = GRAMA_FLOR
                 else:
                     v = GRAMA
@@ -97,6 +118,12 @@ def construir():
                     v = TERRA_PEDRA
             t.set(c, r, v)
 
+    for c0, c1, r0, r1 in GRUTA + TOCA:
+        t.retangulo(c0, c1, r0, r1, VAZIO)
+    # piso da gruta com raízes (grama com raiz não cabe: não há céu); terra escura
+    for c in range(187, 200):
+        t.set(c, 26, TERRA_FUNDA if acaso(c, 26, 3) > 0.5 else TERRA)
+
     for c0, c1, r, tile, escoras in PLATAFORMAS:
         for c in range(c0, c1 + 1):
             assert t.get(c, r) == VAZIO, ("plataforma sobre terreno", c, r)
@@ -104,68 +131,83 @@ def construir():
         for c in escoras:
             for rr in range(r + 1, alt[c]):
                 t.set(c, rr, ESCORA)
+    for c, r0, r1 in ESCORAS_ENTRE:
+        for rr in range(r0, r1 + 1):
+            t.set(c, rr, ESCORA)
 
-    # ── marcadores ──────────────────────────────────────────────────────────
     def chao(c, v):
         t.set(c, alt[c] - 1, v)
-
-    def sobre(c, linha_plat, v):
-        t.set(c, linha_plat - 1, v)
 
     chao(8, SPAWN)
     chao(87, P_CAVERNA)
     chao(150, CH_CAVERNA)
-    chao(337, CH_COPAS)
-    chao(344, P_COPAS)
-    for c in (134, 189, 276):
+    chao(367, CH_COPAS)
+    chao(374, P_COPAS)
+    for c in (136, 189, 317):
         chao(c, COBRA)
-    t.set(263, 25, TUCANO)
-
-    minerios_chao = [15, 40, 66, 76, 81, 92, 99, 118, 145, 157, 162, 173, 181,
-                     194, 212, 220, 244, 256, 268, 282, 297, 309, 317, 350, 357]
-    for c in minerios_chao:
+    t.set(288, 25, TUCANO)
+    for c in MINERIOS_CHAO:
         chao(c, MINERIO)
-    for c, r in [(31, 28), (54, 24), (106, 28), (113, 26), (123, 26),
-                 (201, 19), (205, 19), (250, 28), (290, 25), (363, 22), (370, 20)]:
-        sobre(c, r, MINERIO)
+    for c, r in MINERIOS_PLAT + MINERIOS_GRUTA:
+        assert t.get(c, r) != VAZIO, ("minerio sem apoio", c, r)
+        t.set(c, r - 1, MINERIO)
 
-    decor = decorar(t, alt, troncos)
-    estruturas = estruturas_floresta(alt)
-    return t, decor, estruturas
+    return t, decorar(t, alt, troncos), estruturas_floresta(alt)
 
 
 def decorar(t, alt, troncos):
     import constants
     comp = Compositor(t, constants.SOLID_TILES, constants.TILES_MARCADORES | {ESCORA})
 
-    # 1. Peças narrativas, colocadas à mão.
-    comp.grupo_chao(12, alt[12] - 1, [PLACA])                 # placa do começo
-    comp.grupo_chao(79, alt[79] - 1, [PLACA])                 # aviso da ravina
-    comp.grupo_chao(340, alt[340] - 1, [PLACA])               # rumo às copas
-    # boca da caverna: rochas e fungos emoldurando, vão central limpo
-    comp.grupo_chao(84, 32, [PEDRA, FUNGO])
+    # ── zonas limpas ─────────────────────────────────────────────────────────
+    comp.reservar(85, 89, 30, 32)          # vão da boca da caverna
+    comp.reservar(372, 376, 21, 23)        # cipó das copas
+    comp.reservar(365, 369, 22, 23)        # chegada 43
+    comp.reservar(148, 152, 27, 28)        # chegada 42
+    comp.reservar(6, 10, 27, 29)           # spawn
+    comp.reservar(198, 201, 24, 25)        # porta da gruta: leitura da abertura
+    for r in range(L):
+        for c in range(C):
+            if t.g[r][c] == MINERIO:
+                comp.reservar(c - 1, c + 1, r, r)
+
+    # ── peças narrativas ─────────────────────────────────────────────────────
+    comp.grupo_chao(12, alt[12] - 1, [PLACA])
+    comp.grupo_chao(76, alt[76] - 1, [PLACA])                     # aviso da ravina
+    comp.grupo_chao(205, 25, [PLACA])                             # "há algo no paredão"
+    comp.grupo_chao(370, alt[370] - 1, [PLACA])
+    comp.grupo_chao(84, 32, [PEDRA, FUNGO])                       # boca da caverna
     comp.grupo_chao(89, 32, [FUNGO, PEDRA])
-    comp.grupo_chao(82, 31, [SAMAMB, COGU])
+    comp.grupo_chao(81, 31, [SAMAMB, COGU])
     comp.grupo_chao(91, 31, [COGU])
     comp.grupo_chao(93, 30, [PEDRA])
-    comp.reservar(85, 89, 30, 32)
-    # cipó das copas ao pé da Árvore-Mãe: deixa a subida legível
-    comp.reservar(342, 346, 21, 23)
-    comp.reservar(335, 339, 22, 23)                           # chegada 43
-    comp.reservar(148, 152, 27, 28)                           # chegada 42
-    comp.reservar(6, 10, 27, 29)                              # spawn
-    # lago raso: água em toda a lâmina, juncos nas margens
+    # lago: lâmina d'água inteira, juncos nas margens
     for c in range(LAGO[0] + 1, LAGO[1]):
         comp.por(c, 31, AGUA)
     comp.grupo_chao(LAGO[0], 31, [SAMAMB])
     comp.grupo_chao(LAGO[1], 31, [SAMAMB])
-    comp.grupo_chao(LAGO[1] + 1, alt[LAGO[1] + 1] - 1, [FLOR_ROXA])
+    # clareira afundada: fundo úmido com samambaias e cogumelos, nada sob o tronco no meio
+    comp.grupo_chao(105, 32, [SAMAMB, COGU])
+    comp.grupo_chao(113, 32, [FUNGO, VAZIO, SAMAMB])
+    # toca entre raízes na baixada
+    comp.grupo_chao(302, 30, [RAIZ_ARCO, COGU])
+    comp.grupo_chao(304, 30, [FUNGO])
+    for c, v in ((309, FUNGO), (311, RAIZ_ARCO), (315, COGU)):
+        comp.por(c, 33, v)
+    for c in (310, 315):
+        comp.pendurar(c, 32, [LIANA])
 
-    # 2. Pé das árvores: raízes rasteiras e sombra (cogumelos / samambaia).
+    # Gruta da Guardiã: raízes penduradas do teto, fungos luminosos no chão.
+    for c in (188, 192, 195):
+        comp.pendurar(c, 23 if c < 194 else 24, [LIANA] if c != 192 else [RAMOS])
+    for c, v in ((187, FUNGO), (188, RAIZ_ARCO), (192, COGU), (193, FUNGO), (196, RAIZ_ARCO)):
+        comp.por(c, 25, v)
+
+    # Pé das árvores: raízes rasteiras, sombra.
     for i, tc in enumerate(troncos):
         r = alt[tc] - 1
-        if tc in (190, 353):   # guardiã e mãe: base larga, mais densa
-            comp.grupo_chao(tc - 5, r, [SAMAMB, RAIZ_ARCO])
+        if tc in (190, 383):
+            comp.grupo_chao(tc - 6, r, [SAMAMB, RAIZ_ARCO])
             comp.grupo_chao(tc + 4, r, [RAIZ_ARCO, COGU, FUNGO])
             continue
         comp.grupo_chao(tc - 2, r, [RAIZ_ARCO])
@@ -177,56 +219,55 @@ def decorar(t, alt, troncos):
         else:
             comp.grupo_chao(tc + 3, r, [SAMAMB])
 
-    # 3. Pendurados sob as passarelas — nem todas, nem no mesmo ponto.
+    # Pendurados sob passarelas: lianas em comprimentos variados.
     for i, (c0, c1, r, tile, escoras) in enumerate(PLATAFORMAS):
-        larg = c1 - c0 + 1
-        if larg < 5 or i % 2 == 1 and tile != PONTE:
+        if r <= 18 or c1 - c0 < 4:
             continue
-        a = c0 + 1 + int(acaso(c0, r, 5) * (larg - 3))
+        a = c0 + 1 + int(acaso(c0, r, 5) * (c1 - c0 - 2))
         if a in escoras:
             a += 1
-        comp.pendurar(a, r + 1, [LIANA, LIANA][: 1 + (i % 2 == 0)])
-        b = a + 2 + (i % 2)
+        comp.pendurar(a, r + 1, [LIANA] * (1 + i % 2))
+        b = a + 3
         if b < c1 and b not in escoras:
             comp.pendurar(b, r + 1, [RAMOS])
 
-    # Minério no chão: 1 célula livre de cada lado (leitura do item).
-    for r in range(L):
-        for c in range(C):
-            if t.g[r][c] == MINERIO:
-                comp.reservar(c - 1, c + 1, r, r)
-
-    # 3b. Barranco do lago e da vala: rochas onde o terreno quebra.
-    for c in (313, 321):
+    # Outeiro do mirante: rochas agrupadas nas encostas, flores no topo.
+    comp.grupo_chao(250, alt[250] - 1, [PEDRA, SAMAMB])
+    comp.grupo_chao(255, alt[255] - 1, [PEDRA, PEDRA])
+    comp.grupo_chao(265, alt[265] - 1, [PEDRA])
+    comp.grupo_chao(258, 26, [FLOR_ROXA])
+    comp.grupo_chao(264, 26, [FLOR, PEDRA])
+    # Barrancos: pedras onde o terreno quebra.
+    for c in (343, 351, 101, 119):
         comp.grupo_chao(c, alt[c] - 1, [PEDRA])
 
-    # 4. Vegetação por zona: manchas agrupadas, com vazios entre elas.
-    ZONAS = [  # (c0, c1, densidade, vinhetas)
-        (0, 37, 0.55, "clareira"), (38, 80, 0.40, "colina"),
-        (95, 160, 0.45, "planicie"), (161, 215, 0.35, "guardia"),
-        (216, 300, 0.65, "baixada"), (301, 373, 0.50, "final"),
+    # Vegetação por zona: densidades diferentes, manchas com vazios entre elas.
+    ZONAS = [  # (c0, c1, limiar, vinhetas) — limiar menor = mais denso
+        (0, 37, 0.15, "clareira"), (38, 76, 0.20, "colina"),
+        (95, 160, 0.16, "planicie"), (161, 216, 0.22, "guardia"),
+        (217, 330, 0.11, "baixada"), (331, 403, 0.13, "final"),
     ]
     VINHETAS = {
-        "clareira": [[FLOR], [FLOR, VAZIO, FLOR_ROXA], [SAMAMB, FLOR], [ARBUSTO], [FLOR_ROXA, FLOR]],
-        "colina": [[SAMAMB], [ARBUSTO, SAMAMB], [FLOR], [ARBUSTO]],
+        "clareira": [[FLOR], [FLOR, VAZIO, FLOR_ROXA], [SAMAMB, FLOR], [ARBUSTO], [FLOR_ROXA, FLOR, FLOR]],
+        "colina": [[SAMAMB], [ARBUSTO, SAMAMB], [FLOR], [ARBUSTO], [PEDRA, SAMAMB]],
         "planicie": [[ARBUSTO, ARBUSTO], [FLOR], [SAMAMB, FLOR, VAZIO, FLOR_ROXA], [FOLHAGEM, ARBUSTO], [SAMAMB]],
-        "guardia": [[SAMAMB], [COGU], [ARBUSTO], [PEDRA, SAMAMB]],
+        "guardia": [[SAMAMB], [COGU], [ARBUSTO], [PEDRA, SAMAMB], [FLOR_ROXA]],
         "baixada": [[FOLHAGEM, ARBUSTO], [SAMAMB, SAMAMB], [FLOR_ROXA], [ARBUSTO, VAZIO, FLOR],
-                    [FOLHAGEM, FOLHAGEM, ARBUSTO], [SAMAMB, COGU]],
-        "final": [[FLOR_ROXA], [SAMAMB, FLOR_ROXA], [ARBUSTO], [FUNGO], [FLOR, VAZIO, SAMAMB]],
+                    [FOLHAGEM, FOLHAGEM, ARBUSTO], [SAMAMB, COGU], [FLOR, FLOR_ROXA, FLOR]],
+        "final": [[FLOR_ROXA], [SAMAMB, FLOR_ROXA], [ARBUSTO, FOLHAGEM], [FUNGO], [FLOR, VAZIO, SAMAMB],
+                  [FLOR_ROXA, FLOR, FLOR_ROXA]],
     }
-    for z0, z1, dens, nome in ZONAS:
+    for z0, z1, limiar, nome in ZONAS:
         c = z0
         while c <= z1:
             r = alt[c] - 1
-            mancha = ruido(c, 0, 21, 9.0) * dens
-            if mancha > 0.16:
+            if ruido(c, 0, 21, 9.0) * 0.6 > limiar:
                 opcoes = VINHETAS[nome]
                 vinheta = opcoes[int(acaso(c, r, 31) * len(opcoes)) % len(opcoes)]
                 fim = c + len(vinheta) - 1
                 if fim <= z1 and all(alt[x] == alt[c] for x in range(c, fim + 1)):
                     if comp.grupo_chao(c, r, vinheta):
-                        c = fim + 2 + int(acaso(c, 7, 41) * 5)
+                        c = fim + 2 + int(acaso(c, 7, 41) * 4)
                         continue
             c += 1
     return comp.d
@@ -235,9 +276,9 @@ def decorar(t, alt, troncos):
 def estruturas_floresta(alt):
     out = []
     for img, col in ARVORES:
-        tc = col + 1
+        tc = col
         assert len({alt[x] for x in range(tc - 2, tc + 3)}) == 1, ("arvore em desnivel", img, col)
         out.append({"imagem": img, "coluna": col, "base": alt[tc] + 1})
     out.append({"imagem": "isa_v06_arvore_guardia_visivel.png", "coluna": 190, "base": alt[190] + 1})
-    out.append({"imagem": "isa_v06_arvore_mae_visivel.png", "coluna": 353, "base": alt[353]})
+    out.append({"imagem": "isa_v06_arvore_mae_visivel.png", "coluna": 383, "base": alt[383]})
     return out
