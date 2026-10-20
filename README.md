@@ -39,7 +39,6 @@ Knowing how systems work from the hardware up gives me a broader perspective whe
   <img src="https://img.shields.io/badge/Java-E76F00?style=flat-square&logo=openjdk&logoColor=white" alt="Java"/>
   <img src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot"/>
   <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/>
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="JavaScript"/>
   <img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React"/>
   <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white" alt="HTML5"/>
@@ -85,7 +84,7 @@ Knowing how systems work from the hardware up gives me a broader perspective whe
     <td width="50%" valign="top">
       <h3>📚 educaDev</h3>
       <p>Platform that connects education, programming, community and career — helping developers learn, practice and land opportunities.</p>
-      <p><code>TypeScript</code></p>
+      <p><code>Java</code> <code>Spring Boot</code> <code>React</code></p>
       <a href="https://github.com/soares-dev7/educaDev">
         <img src="https://img.shields.io/badge/View-Repository-181717?style=flat-square&logo=github&logoColor=white" alt="educaDev repository"/>
       </a>
@@ -132,7 +131,7 @@ More projects (web development, landing pages, **Kell Street** and academic work
 ## 🎯 Current focus
 
 - Backend development with **Java & Spring Boot**
-- Modern web development with **TypeScript & React**
+- Modern web development with **JavaScript & React**
 - Building real products through **educaDev** and **Nexos Enterprise**
 
 ---
