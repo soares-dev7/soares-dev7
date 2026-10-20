@@ -86,6 +86,9 @@ Knowing how systems work from the hardware up gives me a broader perspective whe
       <h3>🚀 Nexos Enterprise</h3>
       <p>B2B technology initiative that turns business needs into digital solutions: websites, landing pages, e-commerce, business systems and web applications.</p>
       <p><i>Technology is chosen according to the problem — not the other way around.</i></p>
+      <a href="https://github.com/nexos-enterprise">
+        <img src="https://img.shields.io/badge/View-Organization-181717?style=flat-square&logo=github&logoColor=white" alt="Nexos Enterprise organization"/>
+      </a>
     </td>
   </tr>
   <tr>
