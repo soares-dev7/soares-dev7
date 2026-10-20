@@ -94,8 +94,11 @@ Knowing how systems work from the hardware up gives me a broader perspective whe
   <tr>
     <td width="50%" valign="top">
       <h3>🎮 ISA — Intelligence, Knowledge & Learning</h3>
-      <p>Academic educational game combining programming logic with exploration and interactive challenges: maps, enemies, item collection, a quiz system and CSV-based data.</p>
-      <p><code>Python</code> <code>Pygame</code> <code>CSV</code></p>
+      <p>2D educational platformer: explore four areas, collect ores that unlock questions and defeat the Gorilla Guardian boss. Answers are saved to SQLite and turned into a PDF report for teachers.</p>
+      <p><code>Python</code> <code>Pygame</code> <code>SQLite</code> <code>CSV</code></p>
+      <a href="https://github.com/soares-dev7/isa-game">
+        <img src="https://img.shields.io/badge/View-Repository-181717?style=flat-square&logo=github&logoColor=white" alt="ISA repository"/>
+      </a>
     </td>
     <td width="50%" valign="top">
       <h3>🧮 IAC Calculator</h3>
