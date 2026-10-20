@@ -123,8 +123,8 @@ More projects (web development, landing pages, **Kell Street** and academic work
 ## 📊 GitHub stats
 
 <p align="center">
-  <img height="165" src="https://github-readme-stats.vercel.app/api?username=soares-dev7&show_icons=true&hide_border=true&theme=transparent&rank_icon=github" alt="GitHub stats"/>
-  <img height="165" src="https://github-readme-stats.vercel.app/api/top-langs/?username=soares-dev7&layout=compact&hide_border=true&theme=transparent" alt="Top languages"/>
+  <img src="assets/stats.svg" alt="GitHub stats"/>
+  <img src="assets/langs.svg" alt="Most used languages"/>
 </p>
 
 ---

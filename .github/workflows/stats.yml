@@ -1,0 +1,36 @@
+name: Update profile stats
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # todo dia, 03:17 no horário de Brasília
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/scripts/stats.py", ".github/workflows/stats.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Generate stats cards
+        run: python .github/scripts/stats.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit if changed
+        run: |
+          git add assets/stats.svg assets/langs.svg
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Update profile stats"
+            git push
+          fi
