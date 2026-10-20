@@ -84,7 +84,7 @@ Knowing how systems work from the hardware up gives me a broader perspective whe
     <td width="50%" valign="top">
       <h3>📚 educaDev</h3>
       <p>Platform that connects education, programming, community and career — helping developers learn, practice and land opportunities.</p>
-      <p><code>TypeScript</code></p>
+      <p><code>Java</code> <code>Spring Boot</code> <code>React</code></p>
       <a href="https://github.com/soares-dev7/educaDev">
         <img src="https://img.shields.io/badge/View-Repository-181717?style=flat-square&logo=github&logoColor=white" alt="educaDev repository"/>
       </a>
@@ -131,7 +131,7 @@ More projects (web development, landing pages, **Kell Street** and academic work
 ## 🎯 Current focus
 
 - Backend development with **Java & Spring Boot**
-- Modern web development with **TypeScript & React**
+- Modern web development with **JavaScript & React**
 - Building real products through **educaDev** and **Nexos Enterprise**
 
 ---
