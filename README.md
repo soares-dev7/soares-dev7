@@ -70,12 +70,11 @@ Knowing how systems work from the hardware up gives me a broader perspective whe
   <img src="https://img.shields.io/badge/Excel-217346?style=flat-square&logo=microsoftexcel&logoColor=white" alt="Excel"/>
   <img src="https://img.shields.io/badge/Power_BI-F2C811?style=flat-square&logo=powerbi&logoColor=black" alt="Power BI"/>
   <img src="https://img.shields.io/badge/Microsoft_Office-D83B01?style=flat-square&logo=microsoftoffice&logoColor=white" alt="Microsoft Office"/>
-  <img src="https://img.shields.io/badge/TOTVS_Protheus-1E2A4A?style=flat-square" alt="TOTVS Protheus"/>
 </p>
 
 **Infrastructure & support**
 
-`Technical Support` • `Hardware Maintenance` • `Troubleshooting` • `Networks` • `Infrastructure` • `Active Directory` • `File Server` • `Print Server` • `Firewall` • `Industrial Automation`
+`Technical Support` • `Hardware Maintenance` • `Troubleshooting` • `Networks` • `Infrastructure` • `Active Directory` • `File Server` • `Print Server` • `Firewall`
 
 ---
 
