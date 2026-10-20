@@ -64,9 +64,17 @@ Knowing how systems work from the hardware up gives me a broader perspective whe
   <img src="https://img.shields.io/badge/Postman-FF6C37?style=flat-square&logo=postman&logoColor=white" alt="Postman"/>
 </p>
 
+**Productivity & business**
+
+<p>
+  <img src="https://img.shields.io/badge/Excel-217346?style=flat-square&logo=microsoftexcel&logoColor=white" alt="Excel"/>
+  <img src="https://img.shields.io/badge/Power_BI-F2C811?style=flat-square&logo=powerbi&logoColor=black" alt="Power BI"/>
+  <img src="https://img.shields.io/badge/Microsoft_Office-D83B01?style=flat-square&logo=microsoftoffice&logoColor=white" alt="Microsoft Office"/>
+</p>
+
 **Infrastructure & support**
 
-`Technical Support` • `Hardware Maintenance` • `Troubleshooting` • `Networks` • `Infrastructure`
+`Technical Support` • `Hardware Maintenance` • `Troubleshooting` • `Networks` • `Infrastructure` • `Active Directory` • `File Server` • `Print Server` • `Firewall`
 
 ---
 
