@@ -1,0 +1,23 @@
+[APROVADO ] teste_perguntas.py            0.2s  banco de perguntas (gabaritos, alternativas)
+[APROVADO ] teste_csv_edicao.py           1.5s  edição/salvamento/recarga dos CSVs
+[APROVADO ] teste_mapa.py                 0.3s  mapas, setores, gerador e validação
+[APROVADO ] teste_level_design_profissional.py    0.1s  rotas, portais, apoio, decoracoes e novos CSVs
+[APROVADO ] teste_joystick.py             0.2s  controle: conexão, eixos, navegação
+[APROVADO ] teste_quiz_controle.py        0.3s  quiz pelo controle
+[APROVADO ] teste_animacao_pulo.py        0.5s  animação de andar/pular
+[APROVADO ] teste_gamepad_falso.py       23.5s  partida com controle simulado: andar, golpe B/Y, quiz, pausa
+[APROVADO ] teste_teclado.py              7.7s  loop real: menu, nome, cutscene, golpe J/F, pausa (teclado)
+[APROVADO ] teste_partida.py              1.4s  partida: spawn, coleta, quiz, setores, arena
+[APROVADO ] teste_bordas_e_saidas.py      1.1s  bordas do mapa e saida da arena antes da luta
+[APROVADO ] teste_validador_fisica.py    42.7s  validador de fisica real: pulo duplo x simples, poco, mutacoes
+[APROVADO ] teste_voadores.py           111.7s  tucano (ID 93): IA real + fisica real, casos bons e ruins
+[APROVADO ] teste_inimigos.py             1.1s  pisão derrota inimigos; lateral machuca; boss imune
+[APROVADO ] teste_combate.py              0.9s  golpe de asa: vida, cooldown, atordoamento, setores, Gorila imune
+[APROVADO ] teste_estatisticas.py         0.8s  SQLite e relatório PDF
+[APROVADO ] teste_boss_projetil.py        0.2s  ciclo de arremessos e derrota do boss
+[APROVADO ] teste_boss.py                14.2s  luta completa contra o boss
+[APROVADO ] teste_boss_v1.py             16.0s  boss v1.0: salto de reposicao, fase 3 (chuva), anuncios, janela de punicao
+[APROVADO ] teste_npcs.py                 1.0s  NPCs: posicao, conversa (E), falas por progresso, recompensa unica
+[APROVADO ] teste_benchmark.py            1.9s  desempenho (FPS) — comparativo
+
+21/21 sem falha

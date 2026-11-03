@@ -1,0 +1,130 @@
+{
+  "_leia_me": [
+    "NPCs por setor. Posicao: 'coluna' e 'base' (linha do BLOCO SOLIDO onde o NPC pisa), igual aos marcadores do CSV.",
+    "sprite: prefixo dos quadros em assets/images/npcs/ (npc_<sprite>_0..2.png) ou 'personagens:<arquivo>' para usar uma arte existente.",
+    "falas: o PRIMEIRO bloco cujas condicoes valem e o que o NPC diz. Condicoes aceitas: min_coletados_setor, max_coletados_setor,",
+    "min_coletados_total, max_coletados_total, visitou (nome de setor). Textos aceitam {coletados_setor}, {total_setor}, {coletados_total}.",
+    "recompensa (opcional): entregue UMA vez por partida quando a condicao vale; 'item': 'maca' (cura)."
+  ],
+  "floresta": [
+    {
+      "id": "taina",
+      "nome": "Guarda Taina",
+      "sprite": "taina",
+      "coluna": 20,
+      "base": 30,
+      "falas": [
+        {"min_coletados_setor": 15, "linhas": [
+          "A floresta agradece, Areninha! Ja sao {coletados_setor} minerios.",
+          "Ao pe da Arvore-Mae, la no fim, um cipo sobe ate as copas."
+        ]},
+        {"min_coletados_setor": 4, "linhas": [
+          "Voce esta pegando o jeito! {coletados_setor} de {total_setor} minerios aqui.",
+          "A boca da caverna fica na ravina, mais adiante. Aperte E para descer."
+        ]},
+        {"linhas": [
+          "Ola, Areninha! Sou a Taina, guarda desta floresta.",
+          "Os minerios brilham pelo caminho. Toque num deles e responda a pergunta.",
+          "Acertou, ganha vida. Errou, perde um pouco. Pense com calma!",
+          "Pulo duplo: aperte pular de novo no ar. Golpe de asa: tecla J."
+        ]}
+      ]
+    },
+    {
+      "id": "benedito",
+      "nome": "Seu Benedito",
+      "sprite": "benedito",
+      "coluna": 74,
+      "base": 30,
+      "falas": [
+        {"visitou": "caverna", "linhas": [
+          "Voltou da caverna inteira! Os andaimes ainda aguentam, ne?",
+          "Se encontrar a engenheira Ana, manda lembrancas do velho Benedito."
+        ]},
+        {"linhas": [
+          "Ei, passarinho! Benedito, minerador ha quarenta anos.",
+          "A fabrica parou por falta de cobre e zinco. Sem minerio, nada de pecas.",
+          "La embaixo, na caverna, os veios ainda estao cheios.",
+          "Mas cuidado com as aranhas penduradas no teto!"
+        ]}
+      ]
+    }
+  ],
+  "caverna": [
+    {
+      "id": "ana",
+      "nome": "Engenheira Ana",
+      "sprite": "ana",
+      "coluna": 61,
+      "base": 35,
+      "recompensa": {
+        "min_coletados_setor": 8,
+        "item": "maca",
+        "linhas": ["Que coleta! Tome esta maca, voce vai precisar de forcas."]
+      },
+      "falas": [
+        {"min_coletados_setor": 8, "linhas": [
+          "A saida fica no fim da caverna, depois da camara das tochas.",
+          "O Benedito tem razao: estes veios valem ouro. Quer dizer, cobre!"
+        ]},
+        {"linhas": [
+          "Areninha! Sou a Ana, engenheira de minas.",
+          "Estes andaimes sobem ate uma galeria antiga, por cima da passagem estreita.",
+          "No fundo ha um poco de cristais e uma gruta com veios ricos.",
+          "Traga 8 minerios daqui e eu te dou algo para a viagem."
+        ]}
+      ]
+    }
+  ],
+  "copas": [
+    {
+      "id": "lia",
+      "nome": "Pesquisadora Lia",
+      "sprite": "lia",
+      "coluna": 92,
+      "base": 20,
+      "recompensa": {
+        "min_coletados_setor": 5,
+        "item": "maca",
+        "linhas": ["Voce coleta rapido! Leve esta maca para a luta."]
+      },
+      "falas": [
+        {"min_coletados_setor": 5, "linhas": [
+          "Quando o Gorila ficar tonto, um minerio cai no chao.",
+          "Pegue e ele volta voando na cabeca dele. Dano extra!"
+        ]},
+        {"linhas": [
+          "Psiu! Fale baixo... Sou a Lia, estudo os animais da copa.",
+          "Um Gorila Guardiao vive no topo. Ele protege a ultima jazida.",
+          "Ele arremessa bananas: fique fora da sombra que aparece no chao!",
+          "Quando jogar um MINERIO, deixe acertar e responda certo para devolver."
+        ]}
+      ]
+    },
+    {
+      "id": "diretor",
+      "nome": "Diretor",
+      "sprite": "personagens:S7.png",
+      "coluna": 148,
+      "base": 17,
+      "falas": [
+        {"min_coletados_total": 40, "linhas": [
+          "Incrivel: {coletados_total} minerios! A producao ja voltou a girar.",
+          "So falta a jazida do Gorila. Respire fundo e va em frente!"
+        ]},
+        {"max_coletados_total": 4, "linhas": [
+          "Areninha! A fabrica esta a poucas horas de parar.",
+          "Voce chegou ate aqui com poucos minerios...",
+          "Cada minerio e uma pergunta respondida e um passo para salvar a producao.",
+          "O Gorila Guardiao esta logo ali no portal. Prepare-se bem!"
+        ]},
+        {"linhas": [
+          "Areninha! A fabrica esta a poucas horas de parar.",
+          "Voce ja trouxe {coletados_total} minerios. Cada um ajuda!",
+          "O ultimo obstaculo e o Gorila Guardiao, logo ali no portal.",
+          "A industria, e a cidade inteira, contam com voce."
+        ]}
+      ]
+    }
+  ]
+}
