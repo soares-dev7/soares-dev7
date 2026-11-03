@@ -77,3 +77,15 @@ aproveita todas as janelas vence com **4 perguntas** em vez de 8 (medido no
 teste da luta completa). Para manter 8 perguntas obrigatórias com a janela
 de punição, aumente `GORILA_VIDA` para 12–16. Isso exige ajustar a checagem
 `VIDA_MAX == 8` em `testes/teste_boss_projetil.py`.
+
+## Arena em ruínas (v1.1)
+
+Santuário em ruínas tomado pela floresta, noite fria e enevoada, sem
+vermelho. A arte é gerada por `ferramentas/gerar_arte_arena_ruinas.py`:
+fundo em 2 camadas, tiles 68–71 e 3 estruturas. Os vaga-lumes são ligados
+por `"vagalumes": 14` em `constants.AMBIENTES["arena"]`. A geometria da luta
+é a mesma.
+
+**Legibilidade:** a faixa de névoa clara fica atrás dos lutadores (`--medir`
+mostra o contraste). Para voltar ao templo antigo, use
+`pro_arena_fundo.png` em `camadas`.

@@ -1,4 +1,4 @@
-# I.S.A. v1.0: NPCs e nova luta contra o Gorila
+# I.S.A. v1.0/v1.1: NPCs, nova luta contra o Gorila e arena em ruínas
 
 Base: a v0.9 (mapas polidos; ver `../isa-redesign-mapas/`). Os mapas não
 mudaram. Copie `ISA_candidata_polida/` por cima do projeto v0.9.
@@ -77,3 +77,39 @@ inteira passou 21/21.
 2. **Sem partida manual.** Tudo foi validado por testes automáticos e capturas
    do loop real; vale jogar a luta e conversar com os NPCs.
 3. A arte nova dos NPCs é minha: revisem se ela combina com o que a equipe quer.
+
+---
+
+# v1.1: arena em ruínas
+
+A arena do Gorila virou um **santuário em ruínas tomado pela floresta**:
+colunas de pedra quebradas e cobertas de musgo, um arco partido, muralha
+desmoronando, cipós e copas invadindo pelo alto, noite fria e enevoada com
+lua pálida e vaga-lumes. **Sem vermelho**: paleta de azul-acinzentado e
+verde-musgo. A geometria da luta não mudou.
+
+| Arquivo | |
+|---|---|
+| `assets/images/backgrounds/isa_arena_ruinas_fundo.png`, `isa_arena_ruinas_frente.png` | **novos**: fundo em 2 camadas de paralaxe |
+| `assets/images/tiles/isa_ruina_*.png` (4) | **novos**: laje com musgo, blocos, bloco rachado, plataforma |
+| `assets/images/cenarios/isa_ruina_*.png` (3) | **novos**: coluna alta, coluna quebrada, arco partido |
+| `ferramentas/gerar_arte_arena_ruinas.py` | **novo**: gera toda essa arte (determinístico) |
+| `constants.py` | tiles 68–71 (IDs novos; os do templo continuam válidos); ambiente da arena |
+| `src/ambientes.py` | vaga-lumes (opção `vagalumes` do ambiente) |
+| `assets/levels/setores/arena.csv`, `decoracoes/arena_decor.csv`, `estruturas_cenario.json` | arena com a pele nova |
+| `ferramentas/redesign_mapas/arena.py` | gera a arena nova (também atualizado em `../isa-redesign-mapas/`) |
+
+**Legibilidade:** o Gorila é quase preto. O fundo tem uma faixa de névoa mais
+clara exatamente na altura da luta. Medido pelo gerador (`--medir`):
+luminância média do Gorila 46 contra 75 na faixa da luta.
+
+- O palco (colunas 16–32) fica sem decoração.
+- As luzes quentes são só os dois braseiros nos obeliscos, que emolduram a luta.
+- O fundo antigo `pro_arena_fundo.png` continua na pasta. Para voltar, basta
+  trocar `camadas` em `constants.AMBIENTES["arena"]`.
+
+**Testes (`testes_v1.1.txt`):** 21/21 aprovados. Também passaram
+`validar_dados.py` (0/0), a física real da arena (0 erros) e o auditor. O
+`build.py` da arena regenera os mesmos bytes.
+
+Imagens: `imagens/arena_ruinas/` (antes/depois e capturas do jogo rodando).

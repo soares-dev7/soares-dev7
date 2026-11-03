@@ -83,6 +83,13 @@ TILE_SPRITES = {
 SOLID_TILES.update({64,65,66})
 TILE_SPRITES.update({64:'isa_v04_raiz_passarela.png',65:'isa_v04_monte_musgo.png',66:'isa_v04_tunel_rocha.png',67:'isa_v04_raiz_escora.png'})
 
+# Arena em ruínas (v1.1): pedra antiga com musgo, gerada por
+# ferramentas/gerar_arte_arena_ruinas.py. IDs novos — os do templo (27-29, 63)
+# continuam válidos.
+SOLID_TILES.update({68, 69, 70, 71})
+TILE_SPRITES.update({68: 'isa_ruina_laje_musgo.png', 69: 'isa_ruina_bloco.png',
+                     70: 'isa_ruina_bloco_rachado.png', 71: 'isa_ruina_plataforma.png'})
+
 # IDs de tile de PASSAGEM (troca de setor). NÃO entram em SOLID_TILES nem em
 # TILE_SPRITES: são apagados da grade ao carregar e desenhados como cenário
 # por src/passagens.py.
@@ -243,12 +250,19 @@ AMBIENTES = {
         "tint": (255, 255, 255),
         "luz": (0, 0, 0),
     },
+    # Arena em ruínas (v1.1): santuário tomado pela floresta, noite fria e
+    # enevoada. Névoa clara na altura da luta para o Gorila (escuro) não
+    # sumir no fundo. O fundo antigo (pro_arena_fundo.png) continua na pasta.
     "arena": {
         "estilo": "caverna",
-        "cor_ceu": (36, 32, 43),
-        "camadas": [("pro_arena_fundo.png", 0.13)],
-        "tint": (255, 250, 240),
+        "cor_ceu": (8, 12, 18),
+        "camadas": [
+            ("isa_arena_ruinas_fundo.png", 0.12),
+            ("isa_arena_ruinas_frente.png", 0.35),
+        ],
+        "tint": (236, 242, 240),
         "luz": (0, 0, 0),
+        "vagalumes": 14,
     },
     "caverna": {
         "estilo": "caverna",
