@@ -51,7 +51,7 @@ coloque o PNG em `assets/images/npcs/npc_<nome>_0..2.png` ou use
 | Posição | parado no centro | **salta para outro ponto** a cada 3 arremessos (2 nas fases 2–3); pouso marcado no chão 0,55 s antes; só em chão livre, nunca a menos de 4 tiles do jogador |
 | Fases | 2 | **3**: com 1/4 da vida, **chuva de bananas** (`cacho_banana.png`) e arremessos a cada 0,8 s |
 | Troca de fase | só o número na HUD | **faixa na tela**, fala do Gorila, tremor e **rugido sem ataque** ao acordar |
-| Atordoado | 3 s de espera; encostar machucava | **janela de punição**: cai um minério do lado do jogador; pegá-lo tira 1 de vida extra. Atordoado não fere por contato. Estrelas sobre a cabeça |
+| Atordoado | 3 s de espera; encostar machucava | não fere por contato; estrelas sobre a cabeça. A **janela de punição** (minério caído = dano extra) existe, mas fica **desligada**: a vitória exige as **8 perguntas** |
 | HUD | barra + "FASE" | + **MINÉRIOS DEVOLVIDOS X/8** e balão de fala |
 
 Justiça (verificada em `testes/teste_boss_v1.py`):
@@ -72,20 +72,24 @@ sonda de 1 px sob os pés mantém o estado estável.
 `GORILA_CHUVA_ESPACO_TILES`, `GORILA_CHUVA_DANO`, `GORILA_INTERVALO_ATAQUE_F3`,
 `GORILA_RUGIDO_FASE_MS`, `GORILA_ANUNCIO_MS`, `GORILA_DANO_BONUS`.
 
-**Decisão pedagógica em aberto:** com `GORILA_DANO_BONUS = 1`, um jogador que
-aproveita todas as janelas vence com **4 perguntas** em vez de 8 (medido no
-teste da luta completa). Para manter 8 perguntas obrigatórias com a janela
-de punição, aumente `GORILA_VIDA` para 12–16. Isso exige ajustar a checagem
-`VIDA_MAX == 8` em `testes/teste_boss_projetil.py`.
+**8 perguntas obrigatórias (decisão da equipe):** `GORILA_DANO_BONUS = 0`.
+Cada minério devolvido com resposta certa tira 1 de vida e o Gorila tem 8, então
+a vitória exige 8 respostas certas (verificado no teste da luta completa). A
+janela de punição continua no código e testada; para ligá-la, use um valor
+> 0. Com ela ligada, quem aproveita todas as janelas vence com 4 perguntas.
 
-## Arena em ruínas (v1.1)
+## Arena em ruínas (v1.1/v1.2)
 
-Santuário em ruínas tomado pela floresta, noite fria e enevoada, sem
-vermelho. A arte é gerada por `ferramentas/gerar_arte_arena_ruinas.py`:
-fundo em 2 camadas, tiles 68–71 e 3 estruturas. Os vaga-lumes são ligados
-por `"vagalumes": 14` em `constants.AMBIENTES["arena"]`. A geometria da luta
-é a mesma.
+Santuário de pedra em ruínas, noite fria e enevoada, sem vermelho. **Pouca
+decoração** (pedido da equipe): o musgo está na própria pedra (tiles e
+fundo); de enfeite, só os dois obeliscos com braseiro que emolduram a luta,
+duas colunas quebradas e o pórtico da saída. A copa no alto é só um beiral,
+com poucos cipós, e há 6 vaga-lumes.
 
-**Legibilidade:** a faixa de névoa clara fica atrás dos lutadores (`--medir`
-mostra o contraste). Para voltar ao templo antigo, use
-`pro_arena_fundo.png` em `camadas`.
+A arte é gerada por `ferramentas/gerar_arte_arena_ruinas.py`: fundo em 2
+camadas, tiles 68–71 e estruturas. O arco partido continua sendo gerado,
+mas está fora da arena. A geometria da luta é a mesma.
+
+**Legibilidade:** a faixa de névoa clara fica atrás dos lutadores. `--medir`
+mostra o contraste: Gorila 46 contra fundo 75. Para voltar ao templo antigo,
+use `pro_arena_fundo.png` em `camadas`.

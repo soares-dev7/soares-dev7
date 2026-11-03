@@ -32,9 +32,11 @@ COMO A LUTA FUNCIONA (o que o jogador vê)
               rápidos.
   REPOSIÇÃO — entre arremessos o Gorila SALTA para outro ponto da arena (o
               pouso aparece marcado no chão; nunca perto do jogador).
-  PUNIÇÃO   — atordoado, ele derruba um minério do lado do jogador: pegue-o
-              e ele volta voando na cabeça do Gorila (dano extra). Atordoado,
-              o Gorila não machuca por contato.
+  PUNIÇÃO   — (opcional, constants.GORILA_DANO_BONUS > 0) atordoado, ele
+              derruba um minério do lado do jogador: pegue-o e ele volta
+              voando na cabeça do Gorila (dano extra). Desligada por padrão:
+              a vitória exige as 8 perguntas. Atordoado, o Gorila não
+              machuca por contato.
   TROCA DE FASE — faixa de anúncio na tela; ao acordar, um rugido (sem
               ataque) antes de voltar ao combate.
   DERROTA   — com 0 de vida: animação de queda; ao terminar o boss fica
@@ -461,6 +463,8 @@ class Gorila(Enemy):
 
     def _derrubar_minerio(self):
         """Janela de punição: um minério cai do lado do jogador (se houver chão ali)."""
+        if constants.GORILA_DANO_BONUS <= 0:
+            return          # desligada: a luta exige todas as perguntas
         rect = getattr(self, "rect", None)
         chao = getattr(self, "chao_y", None)
         if rect is None or chao is None:

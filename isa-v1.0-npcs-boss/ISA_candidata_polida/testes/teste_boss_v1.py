@@ -12,8 +12,10 @@ Cobre:
     jogador; 40 saltos com o jogador em posições sorteadas;
   * CHUVA DE BANANAS (fase 3): aviso, cachos espaçados (sempre há vão),
     sombra no ponto real de impacto com antecedência, dano uma vez só;
-  * JANELA DE PUNIÇÃO: minério cai do lado do jogador; atordoado não fere
-    por contato; pegar o minério tira vida extra; some se não for pego;
+  * JANELA DE PUNIÇÃO: DESLIGADA por padrão (GORILA_DANO_BONUS = 0, a luta
+    exige 8 perguntas) — nenhum minério cai; atordoado não fere por contato.
+    Ligada temporariamente: minério cai do lado do jogador, pegar tira vida
+    extra, some se não for pego;
   * HUD: contador de minérios, anúncio e balão desenhados sem erro;
   * luta completa com um bot que aproveita a janela de punição.
 
@@ -225,7 +227,34 @@ def _minerio_no_player():
     assert esperar(lambda: b.estado == "ATORDOADO", 600), "nao atordoou"
 
 
+def teste_padrao_sem_bonus():
+    """Padrão da equipe: nenhum minério cai; atordoado não fere por contato."""
+    assert constants.GORILA_DANO_BONUS == 0, "padrao deve exigir as 8 perguntas"
+    b = M.boss
+    b.vida = b.VIDA_MAX
+    b.anuncio = None
+    b.estado, b.pancada, b.salto, b.chuva, b.preparando = "COMBATE", None, None, None, None
+    b.cachos = []
+    colocar_player(b.rect.centerx - 6 * T)
+    _minerio_no_player()
+    assert b.minerio_caido is None, "minerio caiu com o bonus desligado"
+    M.player.invulnerable = False
+    vida = M.player.player_health
+    M.player.rect.center = b.rect.center
+    assert not b.check_player_collision(M.player) and M.player.player_health == vida
+    assert esperar(lambda: b.estado == "COMBATE", constants.GORILA_ATORDOADO_MS // DT + 20)
+    ok("padrao: sem minerio bonus (8 perguntas obrigatorias); atordoado nao fere por contato")
+
+
 def teste_janela_de_punicao():
+    constants.GORILA_DANO_BONUS = 1          # recurso opcional: ligado só neste teste
+    try:
+        _janela_de_punicao()
+    finally:
+        constants.GORILA_DANO_BONUS = 0
+
+
+def _janela_de_punicao():
     b = M.boss
     b.vida = b.VIDA_MAX
     b.anuncio = None
@@ -258,7 +287,7 @@ def teste_janela_de_punicao():
     assert b.minerio_caido is not None
     assert esperar(lambda: b.estado == "COMBATE", constants.GORILA_ATORDOADO_MS // DT + 20)
     assert b.minerio_caido is None, "minerio caido nao sumiu ao acordar"
-    ok("janela de punicao: minerio cai do lado do jogador, atordoado nao fere, "
+    ok("janela de punicao (opcional, ligada no teste): minerio cai do lado do jogador, "
        "pegar tira 1 vida extra, some se nao for pego")
 
 
@@ -297,10 +326,10 @@ def teste_luta_completa_com_punicao():
     assert M.estado_jogo == "VITORIA", "luta nao terminou"
     duracao = (_agora[0] - inicio) / 1000
     assert fases_vistas >= {1, 2, 3}, fases_vistas
-    assert perguntas + bonus[0] * constants.GORILA_DANO_BONUS == Gorila.VIDA_MAX, (perguntas, bonus[0])
-    assert perguntas >= Gorila.VIDA_MAX // 2, "vitoria sem perguntas suficientes"
-    ok(f"luta completa com punicao: VITORIA em {duracao:.0f} s de jogo; {perguntas} perguntas "
-       f"+ {bonus[0]} minerios caidos devolvidos; fases {sorted(fases_vistas)}")
+    assert bonus[0] == 0, "minerio bonus apareceu com a janela desligada"
+    assert perguntas == Gorila.VIDA_MAX == 8, (perguntas, bonus[0])
+    ok(f"luta completa: VITORIA em {duracao:.0f} s de jogo exigindo as {perguntas} perguntas; "
+       f"fases {sorted(fases_vistas)}")
 
 
 if __name__ == "__main__":
@@ -310,6 +339,7 @@ if __name__ == "__main__":
     teste_troca_de_fase_anuncio_e_rugido()
     teste_salto_de_reposicao()
     teste_chuva_de_bananas()
+    teste_padrao_sem_bonus()
     teste_janela_de_punicao()
     teste_luta_completa_com_punicao()
     M.banco_estatisticas.fechar()

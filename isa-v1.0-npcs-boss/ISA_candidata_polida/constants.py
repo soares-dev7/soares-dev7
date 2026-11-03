@@ -262,7 +262,7 @@ AMBIENTES = {
         ],
         "tint": (236, 242, 240),
         "luz": (0, 0, 0),
-        "vagalumes": 14,
+        "vagalumes": 6,
     },
     "caverna": {
         "estilo": "caverna",
@@ -439,10 +439,11 @@ GORILA_CHUVA_DANO         = 10
 # (sem ataque durante o rugido).
 GORILA_ANUNCIO_MS         = 2400
 GORILA_RUGIDO_FASE_MS     = 1000
-# Janela de punição: atordoado, o Gorila derruba um minério do lado do
-# jogador; pegá-lo antes do fim do atordoamento devolve o minério e causa
-# dano extra (sem pergunta). O atordoado também não machuca por contato.
-GORILA_DANO_BONUS         = 1
+# Janela de punição: com valor > 0, o Gorila atordoado derruba um minério do
+# lado do jogador; pegá-lo causa esse dano extra SEM pergunta. DESLIGADA (0):
+# a luta exige as 8 perguntas (decisão da equipe). Atordoado, o Gorila
+# continua sem machucar por contato.
+GORILA_DANO_BONUS         = 0
 
 # ── Câmera ────────────────────────────────────────────────────────────────────
 # Tudo em tiles (multiplicado por TILE_SIZE), para acompanhar o SCALE sem

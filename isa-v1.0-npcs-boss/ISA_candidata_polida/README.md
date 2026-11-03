@@ -65,10 +65,10 @@ entregam uma maçã quando o jogador já coletou minérios suficientes no setor.
 Para conversar, chegue perto e aperte **E** (ou **X** no controle). As falas
 ficam em `assets/levels/npcs.json`.
 
-O Gorila agora salta pela arena, tem uma 3ª fase com chuva de bananas, avisa
-cada troca de fase e, quando fica atordoado, derruba um minério que dá dano
-extra se for pego. Detalhes, ajustes e a decisão pedagógica em aberto:
-[`docs/NPCS_E_BOSS.md`](docs/NPCS_E_BOSS.md).
+O Gorila agora salta pela arena, tem uma 3ª fase com chuva de bananas e
+avisa cada troca de fase. Vencê-lo exige as **8 perguntas**. A arena virou um
+santuário de pedra em ruínas, com musgo, noite fria e pouca decoração.
+Detalhes e ajustes: [`docs/NPCS_E_BOSS.md`](docs/NPCS_E_BOSS.md).
 
 ## Controles
 

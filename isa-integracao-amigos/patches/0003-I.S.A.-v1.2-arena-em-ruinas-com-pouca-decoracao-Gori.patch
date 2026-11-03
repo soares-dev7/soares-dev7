@@ -1,0 +1,2807 @@
+From 8c8683c310d9eda446ecd32bf9838f7fcaa32d8a Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 3 Nov 2026 23:47:54 +0000
+Subject: [PATCH 3/3] I.S.A. v1.2: arena em ruinas com pouca decoracao; Gorila
+ exige 8 perguntas
+
+Arena: pedra com musgo, noite fria, sem vermelho, decoracao minima.
+GORILA_DANO_BONUS = 0: vitoria exige as 8 perguntas.
+---
+ NOVIDADES_v1.0_NPCS_BOSS.md                   |   57 +-
+ README.md                                     |    8 +-
+ .../backgrounds/isa_arena_ruinas_frente.png   |  Bin 0 -> 8875 bytes
+ .../backgrounds/isa_arena_ruinas_fundo.png    |  Bin 0 -> 19649 bytes
+ assets/images/cenarios/isa_ruina_arco.png     |  Bin 0 -> 4039 bytes
+ .../images/cenarios/isa_ruina_coluna_alta.png |  Bin 0 -> 1120 bytes
+ .../cenarios/isa_ruina_coluna_quebrada.png    |  Bin 0 -> 955 bytes
+ assets/images/tiles/isa_ruina_bloco.png       |  Bin 0 -> 160 bytes
+ .../images/tiles/isa_ruina_bloco_rachado.png  |  Bin 0 -> 267 bytes
+ assets/images/tiles/isa_ruina_laje_musgo.png  |  Bin 0 -> 222 bytes
+ assets/images/tiles/isa_ruina_plataforma.png  |  Bin 0 -> 201 bytes
+ assets/levels/decoracoes/arena_decor.csv      |    4 +-
+ assets/levels/estruturas_cenario.json         |   27 +-
+ assets/levels/npcs.json                       |    4 +-
+ assets/levels/setores/arena.csv               |   46 +-
+ constants.py                                  |   29 +-
+ docs/NPCS_E_BOSS.md                           |   28 +-
+ ferramentas/gerar_arte_arena_ruinas.py        |  366 ++++++
+ ferramentas/redesign_mapas/arena.py           |   75 +-
+ src/ambientes.py                              | 1074 +++++++++--------
+ src/enemies/boss.py                           |   10 +-
+ testes/teste_boss_v1.py                       |   44 +-
+ 22 files changed, 1136 insertions(+), 636 deletions(-)
+ create mode 100644 assets/images/backgrounds/isa_arena_ruinas_frente.png
+ create mode 100644 assets/images/backgrounds/isa_arena_ruinas_fundo.png
+ create mode 100644 assets/images/cenarios/isa_ruina_arco.png
+ create mode 100644 assets/images/cenarios/isa_ruina_coluna_alta.png
+ create mode 100644 assets/images/cenarios/isa_ruina_coluna_quebrada.png
+ create mode 100644 assets/images/tiles/isa_ruina_bloco.png
+ create mode 100644 assets/images/tiles/isa_ruina_bloco_rachado.png
+ create mode 100644 assets/images/tiles/isa_ruina_laje_musgo.png
+ create mode 100644 assets/images/tiles/isa_ruina_plataforma.png
+ create mode 100644 ferramentas/gerar_arte_arena_ruinas.py
+
+diff --git a/NOVIDADES_v1.0_NPCS_BOSS.md b/NOVIDADES_v1.0_NPCS_BOSS.md
+index ad7e753..306164b 100644
+--- a/NOVIDADES_v1.0_NPCS_BOSS.md
++++ b/NOVIDADES_v1.0_NPCS_BOSS.md
+@@ -1,4 +1,4 @@
+-# I.S.A. v1.0: NPCs e nova luta contra o Gorila
++# I.S.A. v1.0 a v1.2: NPCs, nova luta contra o Gorila e arena em ruínas
+ 
+ Base: a v0.9 (mapas polidos; ver `../isa-redesign-mapas/`). Os mapas não
+ mudaram. Copie `ISA_candidata_polida/` por cima do projeto v0.9.
+@@ -45,9 +45,10 @@ jogo (`imagens/npcs_pixel_art.png`). O Diretor usa a arte original da equipe.
+   - rugido sem ataque ao acordar depois da troca de fase;
+   - estrelas no atordoamento;
+   - **MINERIOS DEVOLVIDOS X/8** na HUD.
+-- **Janela de punição:** atordoado, ele derruba um minério do lado do jogador.
+-  Pegar o minério dá 1 de dano extra, e o Gorila atordoado não machuca por
+-  contato.
++- **8 perguntas obrigatórias (v1.2):** cada minério devolvido com resposta certa
++  tira 1 de vida e o Gorila tem 8. A janela de punição (minério caído que dá
++  dano extra) ficou no código, mas **desligada** (`GORILA_DANO_BONUS = 0`).
++  Atordoado, o Gorila não machuca por contato.
+ - **Correção encontrada pelos testes novos:** o `on_ground` do Gorila oscilava
+   a cada frame parado no chão. Isso também atrasava o salto-pancada original.
+ 
+@@ -70,10 +71,50 @@ inteira passou 21/21.
+ 
+ ## Pendências
+ 
+-1. **Decisão pedagógica:** com a janela de punição, quem a aproveita sempre
+-   vence com **4 perguntas** em vez de 8 (medido). Se a luta precisa de 8
+-   perguntas obrigatórias, aumente `GORILA_VIDA` (12–16) ou reduza o bônus.
+-   Detalhes em `docs/NPCS_E_BOSS.md`.
++1. ~~Decisão pedagógica~~ **resolvida na v1.2**: a vitória exige as 8 perguntas
++   (teste da luta completa confirma 8 respostas até a vitória).
+ 2. **Sem partida manual.** Tudo foi validado por testes automáticos e capturas
+    do loop real; vale jogar a luta e conversar com os NPCs.
+ 3. A arte nova dos NPCs é minha: revisem se ela combina com o que a equipe quer.
++
++---
++
++# v1.1/v1.2: arena em ruínas
++
++A arena do Gorila virou um **santuário em ruínas tomado pela floresta**:
++colunas de pedra quebradas e cobertas de musgo, um arco partido, muralha
++desmoronando, cipós e copas invadindo pelo alto, noite fria e enevoada com
++lua pálida e vaga-lumes. **Sem vermelho**: paleta de azul-acinzentado e
++verde-musgo. A geometria da luta não mudou.
++
++**v1.2, pouca decoração** (pedido da equipe): o musgo fica na própria pedra.
++De enfeite sobram duas colunas quebradas, o pórtico da saída e os dois
++obeliscos com braseiro; a copa no alto virou só um beiral e há 6 vaga-lumes.
++O arco partido continua sendo gerado, mas está fora da arena.
++
++| Arquivo | |
++|---|---|
++| `assets/images/backgrounds/isa_arena_ruinas_fundo.png`, `isa_arena_ruinas_frente.png` | **novos**: fundo em 2 camadas de paralaxe |
++| `assets/images/tiles/isa_ruina_*.png` (4) | **novos**: laje com musgo, blocos, bloco rachado, plataforma |
++| `assets/images/cenarios/isa_ruina_*.png` (3) | **novos**: coluna alta, coluna quebrada, arco partido |
++| `ferramentas/gerar_arte_arena_ruinas.py` | **novo**: gera toda essa arte (determinístico) |
++| `constants.py` | tiles 68–71 (IDs novos; os do templo continuam válidos); ambiente da arena |
++| `src/ambientes.py` | vaga-lumes (opção `vagalumes` do ambiente) |
++| `assets/levels/setores/arena.csv`, `decoracoes/arena_decor.csv`, `estruturas_cenario.json` | arena com a pele nova |
++| `ferramentas/redesign_mapas/arena.py` | gera a arena nova (também atualizado em `../isa-redesign-mapas/`) |
++
++**Legibilidade:** o Gorila é quase preto. O fundo tem uma faixa de névoa mais
++clara exatamente na altura da luta. Medido pelo gerador (`--medir`):
++luminância média do Gorila 46 contra 75 na faixa da luta.
++
++- O palco (colunas 16–32) fica sem decoração.
++- As luzes quentes são só os dois braseiros nos obeliscos, que emolduram a luta.
++- Para levar tudo ao repositório dos amigos: `../isa-integracao-amigos/`.
++- O fundo antigo `pro_arena_fundo.png` continua na pasta. Para voltar, basta
++  trocar `camadas` em `constants.AMBIENTES["arena"]`.
++
++**Testes (`testes_v1.1.txt` e `testes_v1.2.txt`):** 21/21 aprovados nas duas versões. Também passaram
++`validar_dados.py` (0/0), a física real da arena (0 erros) e o auditor. O
++`build.py` da arena regenera os mesmos bytes.
++
++Imagens: `imagens/arena_ruinas/` (antes/depois e capturas do jogo rodando).
+diff --git a/README.md b/README.md
+index 45f7837..38c1e30 100644
+--- a/README.md
++++ b/README.md
+@@ -65,10 +65,10 @@ entregam uma maçã quando o jogador já coletou minérios suficientes no setor.
+ Para conversar, chegue perto e aperte **E** (ou **X** no controle). As falas
+ ficam em `assets/levels/npcs.json`.
+ 
+-O Gorila agora salta pela arena, tem uma 3ª fase com chuva de bananas, avisa
+-cada troca de fase e, quando fica atordoado, derruba um minério que dá dano
+-extra se for pego. Detalhes, ajustes e a decisão pedagógica em aberto:
+-[`docs/NPCS_E_BOSS.md`](docs/NPCS_E_BOSS.md).
++O Gorila agora salta pela arena, tem uma 3ª fase com chuva de bananas e
++avisa cada troca de fase. Vencê-lo exige as **8 perguntas**. A arena virou um
++santuário de pedra em ruínas, com musgo, noite fria e pouca decoração.
++Detalhes e ajustes: [`docs/NPCS_E_BOSS.md`](docs/NPCS_E_BOSS.md).
+ 
+ ## Controles
+ 
+diff --git a/assets/images/backgrounds/isa_arena_ruinas_frente.png b/assets/images/backgrounds/isa_arena_ruinas_frente.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..7f0e51630238a24ed955c8bf993634b4f58939bb
+GIT binary patch
+literal 8875
+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
+Ar~m)}
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/backgrounds/isa_arena_ruinas_fundo.png b/assets/images/backgrounds/isa_arena_ruinas_fundo.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..9112456050c141dd3c876783ed038ffd321a9044
+GIT binary patch
+literal 19649
+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
+Zu(l70XN4~;fUC*4@FpbVn>e@le*(zYRw4iZ
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/cenarios/isa_ruina_arco.png b/assets/images/cenarios/isa_ruina_arco.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..fbfee531440514fad0a149e0dec924ac90cd66f0
+GIT binary patch
+literal 4039
+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
+B=#T&a
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/cenarios/isa_ruina_coluna_alta.png b/assets/images/cenarios/isa_ruina_coluna_alta.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1f8ed25bb5a36916897e8a620b06273058e8939a
+GIT binary patch
+literal 1120
+zcmV-m1fTnfP)<h;3K|Lk000e1NJLTq001HY0071a1^@s6w~|s;000ChNkl<Zc%1E>
+zF>BjE6vzJw9ZDx*OfjNE$P|n*rFihrDTGjp37tZRlCd8lL+MyL<Wm&WA$TgmloEpH
+z48{Z#Oef<Z2vI@^rFbfJ2jv|3`E-)3(?zo1Z%Le3r=QL*_ue}>7+@G?RVfziNwHv0
+zf*wcZQBsM<hYA3o{TUMg@ISu3an`8R^^LQpMMMlN2JCgN@NVZl+PDM&IHTWEQGpOl
+zBqEyuYrKK>$?0?^dY!A8WBg(&LPd%Nd*%x0z%Odgy>DEgGx&z>@*4oa*YhvlkB8Aj
+zq_39{0Dz6X5=JL3#OrO>El*(k834d?YtrLyOI-lKxaU3Z=k2+7A?LT!IFZhX|0TG*
+zyq*ygS3DSXJdwxp3lTGC1zl+r5dbK!zxG7X#7w}scVF(Nyj+$aFMe<NOt!2#9Q=?z
+ze_dsHHawn6S#E7E5XJ1s*s|)_vg)egXHW*~&gNSHK&#)x%i=5LiNgq!QqG8qBvLXK
+z7V*>TUL+nPvWWO|Op8zv5wJn)1>h}eNoOTgL<DTwXo(RWgyx!7zlr_oLFhm|0Ji;f
+z`q**YSR&F~Q!Ln%a@9*_;|&*;N)f|$qS9r`pnnlP*8o6cZx?67V~qdYt*o_Q$`kau
+z7x$SM!80=G%a2#aNYp^35{r<TV9kd}tKUSWQdAD0<7H8b_)7p21d5niQ3d&k5tD?9
+z4E}vL;h_%J{p!KAihnSXsKKhE76D?koc_#8p_vy*Df>Pdm0}I5VxjB{c&qDX<FB$*
+z1X9kvCRf*34OW`uXF)T?ay3{+O2w6HutG(`8m!byML#A=f&8qjt$q_gaQ2mDULZr+
+zw`6<AxI`#X_HFF#!g1uiZ&0v`84*JFBJ%SkZm@KbxWUp@DsqEG(IR4GSCJbm0SD_t
+zqooYcQIjaM@676ID@0(R_XYI!zYAwyz)OBXQy-Rn=SAe_%U7@hIcczrh;V~N32U%Y
+zuh9IgRD-4E4weq`Qz}Ne)v5z6JI{cD`@XtKlzjmN_P&Btcb-k6?Tsva16ntUMU3t$
+znt(+pEJ8^vvU>M@b;H>=Dl9@_5z2CjaH*IETq;r$XJ2FYeRY#s_Fdhb=OB#kDw;ss
+z9$HeCYesaC84*4Inc*YuiYmy=j4ZE+ZI@u%@$ZOg+j*wMjg>%=_Q`3ifs&%F_ob|E
+z_SFT8P*{Y*A`}*(WJZLuFD3uk*Kyp13uUb$y2*^l!hOvm1+t3F%m|B6ScJkN6wbbs
+z{AXX?um~mlBHeBu-EKf+nG`WiW<&zlky@>4(jz-F!XgyTz7)>B6c(Yd2!%x`EJ9%s
+z3TIymXI~17P*{Y*A`}*(un1)?*93iLgwE_sKc@g7?|Cj3?8)KB!&oO=l%r2aGw*$#
+mn-P;6cz!YyBP>G6jL3hG?;f7tA}e+P0000<MNUMnLSTa8B?~kF
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/cenarios/isa_ruina_coluna_quebrada.png b/assets/images/cenarios/isa_ruina_coluna_quebrada.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1214df3e1f7e4286a891898002310884ae0a209d
+GIT binary patch
+literal 955
+zcmV;s14R6ZP)<h;3K|Lk000e1NJLTq001HY004jp1^@s6Zj-ww000AmNkl<Zc%1E<
+zF>BjE6vzJw#gtAWm|#SQkf{h`LeS8mQwSY`37JfX;;|ngL+DsK<YQzqnMyDnipeJs
+z#u(#KWC%h8V~Q!BO5MReW4+u-mhPlD<o%Y!zLVeI@1F1fPR0PkFfX0*jy)^y*t4wH
+zzseF207m0rYxTMMMHK+h{*Kvb9Bj$v851H4D8_=j$y)P_2myfZ?LDmNUL+_0g#IKl
+zj|xi?vz-)J1QLIboHHD{2g|YgMHS-RA30~s>q38m(4RnzC)JNKBjUon(+Y5dWvUTI
+z=XG!IBag+rY4<GvAh;VwUQ?ABsgTt*9t=jPUsPd*E^dcEaOAj=xvN>22c9p9wRkL+
+zEU9Lc84>TawEJ2*uF8-IY%P?$v)(TR4iSe^$mioP==d#IV+Vsl4<E|WaVvDC*NF@T
+zK~y0vW=d?a9`ApOy*Mo*JE?_GXg!!DQHbl-q|XOIxJ-Z7>*X&*@Vnw^1&UjiwS;v1
+z765f|0>Ghrpq-UOA*zD4?FwwWq7^)qkn8>x8nvdefGXBDJ=@-m9q*DkbRS7Vy6=~F
+z?3q)W8{2d*M73Im-;QdoES4oq8F1L|NqZD!M(U>@(eYcD{sElr6Ikv;WL&&s;ly39
+zxBP!~{IL*uJR>_R6_JJ1jgi3QCk9B!NKv1dL?Hk${P#0<+{CiP3K2W1vwfl+L`#S@
+zb_x+7NYw`9iBgEl{_`R>BaK=U*Zr%+g3Vn>kp-*0vzq8d07LFeofpW-ec#-f+s-q&
+zFEHQc_v?RSTSXve_wD#CG-^!@2BTOJCMfiP702f9tVL7U0V|2r2dvejroco`lKFsT
+zn&)@G640hO_f~P07u5zRm&Wt@u;5@^np?ceePzxIq<7!7YNUPhOKV(Ph+pc>KQT2R
+z2p*(!RK;q{eMR%UZlTIHx-@7XuuQdzN+CtI0D#8b0E+J20V8cd?spZ7x+MWT$Hpjc
+zSO~?4kV5Y&KKa?#G?~x7f+us|qG2Hv7DCY$l6!|%G{%JF);t%Du~sqdmy8r+&GSaM
+zuMA^nUlZrqG-$i83U*&zSO|rMP*@0sg-|v|2)i$Z-Iu~bC@h4+LMSYR!a^wQz7%#}
+z3JamI5DE*Sun-Chp*->$)vr)Zy07fVrCW5u`PcJQ0kd-X?K1NH@1u-(p28k;W@BoE
+dg-|v|$bT^hpq^-e>(c-L002ovPDHLkV1lmOy?Fot
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/tiles/isa_ruina_bloco.png b/assets/images/tiles/isa_ruina_bloco.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..c5c8d00cc3a9a75732436554e320f019aef9c7d6
+GIT binary patch
+literal 160
+zcmeAS@N?(olHy`uVBq!ia0vp^0wB!61SBU+%rFB|>7Fi*AsQ2tLoS;nDX?xZFfi!w
+z_Db;DQ}eHBb~}6UoKBU;nadu&p02+n)8QM>+rI}69XRme(@*X-MJN2+GaSn9U)PVH
+z5;E0L^zQCjalLa*iLb&_-kpA~uW*q|T>Sz285aYOq*+S53_kOv&mUR6#R+I7gQu&X
+J%Q~loCIH7?Je2?d
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/tiles/isa_ruina_bloco_rachado.png b/assets/images/tiles/isa_ruina_bloco_rachado.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..b25f4c6aed5c89741c74f40ef5037eb670e3e180
+GIT binary patch
+literal 267
+zcmV+m0rdWfP)<h;3K|Lk000e1NJLTq000mG000mO0ssI2kdbIM0002eNkl<ZD3O&>
+zJqyAx6g;cgh=OC=sa2z(i{k(P5xUgD_%*d%1R;UYEDnL#rfrIE3YT~9-rXB)wnzL^
+zBLG1ZHb06iU#?f}gsu`?G^cnL^kU30B8b8o;l)@?se=IEM<}wKOlNKdR6Q8$ZXMf0
+zZw;Dvkb;xxtaGJm*!SxV!0xaIke<%^p>fkT^gJ^5eN`$|D#3XWg{o96y~LDiP~)b@
+zYdv#JsTEg|<vpe?j+yI9NryYxy=$f&1OOlM{M<nnfJDCnfVoWOGLa8rkS~0GS-Kqp
+RLbw0`002ovPDHLkV1mDSZ_NMz
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/tiles/isa_ruina_laje_musgo.png b/assets/images/tiles/isa_ruina_laje_musgo.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..a1c0f38d77bd8bdc5df4e0c0100b18b4388c766a
+GIT binary patch
+literal 222
+zcmeAS@N?(olHy`uVBq!ia0vp^0wB!61SBU+%rFB|OFdm2Lo_BP`@ASjR$$#=Q~jZ{
+zvGL*2z5Y8wGPoiS-MoHZHoZ~9Rk*byroLPzQYNeUgTAOCXQ0rWFW=A4f9^j|nVZu<
+zqvk=?hd(Ea+4R_aG{w@y#C)Xf_EalqDsw7cTry+Bt?rj4Oi~YS#qF)|ZDIogpX*82
+z8=i$9l2S=knQvd&_fk$r>OmKfqxjD8a@#t_%NH}0SZsW6c(O1~Thb`cz;J4T!zT0n
+Sxg0<TGkCiCxvX<aXaWGpd{Aou
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/tiles/isa_ruina_plataforma.png b/assets/images/tiles/isa_ruina_plataforma.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..221141e517e14c6cd2603a7e06df775e741a9a28
+GIT binary patch
+literal 201
+zcmeAS@N?(olHy`uVBq!ia0vp^0wB!61|;P_|4#%`6FglULo9le6BY;<sD0V-cli;9
+zY3<e)5+HDI)7^us1Aa{Bis3by-P+jL=olV9`{9AF);xT({%OqOi@AS7;g5GKP*nPq
+z`_?0lm*+QjiabB0(;#``zyXI@j3?R-WK809U@u_4@VDQaXE~$D?t~Xo2Qr>Na19J{
+wW2}mcir{q?cYh}QwAK6eI>Vr6CN>NVGxL-WYcDvi3UnKTr>mdKI;Vst0J;cF0{{R3
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/levels/decoracoes/arena_decor.csv b/assets/levels/decoracoes/arena_decor.csv
+index d391f2e..349b827 100644
+--- a/assets/levels/decoracoes/arena_decor.csv
++++ b/assets/levels/decoracoes/arena_decor.csv
+@@ -18,9 +18,9 @@
+ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+--1,-1,-1,104,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,104,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,104,-1,-1,-1,104,-1,-1
++-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,104,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,104,-1,-1,-1,-1,-1,-1
+ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,113,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+--1,-1,-1,-1,108,-1,-1,109,-1,-1,-1,-1,-1,-1,113,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,113,-1,-1,108,-1,-1,-1
++-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,113,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,113,-1,-1,-1,-1,-1,-1
+ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,113,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,113,-1,-1,-1,-1,-1,-1
+ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+diff --git a/assets/levels/estruturas_cenario.json b/assets/levels/estruturas_cenario.json
+index 94a4f96..806f86d 100644
+--- a/assets/levels/estruturas_cenario.json
++++ b/assets/levels/estruturas_cenario.json
+@@ -317,34 +317,19 @@
+   ],
+   "arena": [
+     {
+-      "imagem": "coluna_santuario.png",
+-      "coluna": 12,
+-      "base": 24.5
++      "imagem": "isa_ruina_coluna_alta.png",
++      "coluna": 11.5,
++      "base": 24.15
+     },
+     {
+-      "imagem": "coluna_santuario.png",
+-      "coluna": 38,
+-      "base": 24.5
++      "imagem": "isa_ruina_coluna_quebrada.png",
++      "coluna": 39.5,
++      "base": 24.15
+     },
+     {
+       "imagem": "isa_arena_portico_retorno.png",
+       "coluna": 5,
+       "base": 25
+-    },
+-    {
+-      "imagem": "isa_arena_estandarte_pedra.png",
+-      "coluna": 13,
+-      "base": 25
+-    },
+-    {
+-      "imagem": "isa_arena_arco_guardiao.png",
+-      "coluna": 34,
+-      "base": 25
+-    },
+-    {
+-      "imagem": "isa_arena_estandarte_pedra.png",
+-      "coluna": 37,
+-      "base": 25
+     }
+   ]
+ }
+\ No newline at end of file
+diff --git a/assets/levels/npcs.json b/assets/levels/npcs.json
+index accf729..e70e547 100644
+--- a/assets/levels/npcs.json
++++ b/assets/levels/npcs.json
+@@ -90,8 +90,8 @@
+       },
+       "falas": [
+         {"min_coletados_setor": 5, "linhas": [
+-          "Quando o Gorila ficar tonto, um minerio cai no chao.",
+-          "Pegue e ele volta voando na cabeca dele. Dano extra!"
++          "Quando o Gorila ficar tonto, aproveite para respirar e se posicionar.",
++          "Sao 8 minerios devolvidos para vence-lo. Cada resposta certa conta!"
+         ]},
+         {"linhas": [
+           "Psiu! Fale baixo... Sou a Lia, estudo os animais da copa.",
+diff --git a/assets/levels/setores/arena.csv b/assets/levels/setores/arena.csv
+index 481d57d..c1e515b 100644
+--- a/assets/levels/setores/arena.csv
++++ b/assets/levels/setores/arena.csv
+@@ -19,26 +19,26 @@
+ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+ -1,-1,-1,-1,-1,-1,96,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,96,-1,-1,-1,-1
+--1,-1,-1,63,63,63,63,63,63,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,63,63,63,63,63,63,-1,-1
+--1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+--1,35,-1,-1,-1,44,-1,-1,63,63,63,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,95,-1,-1,-1,-1,-1,-1,63,63,63,-1,-1,-1,-1,-1,-1,-1
+-29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29
+-28,28,27,27,27,27,27,27,27,28,28,28,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,27,27,27,27
+-28,28,27,27,27,27,27,27,27,28,28,28,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,27,27,27,27
+-28,28,27,27,27,27,27,27,27,28,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,27,27,27,27,27
+-27,27,28,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27
+-27,27,28,28,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,27,27,27,27,27,28,28,27,27,27,27,27,27,27
+-27,27,27,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27
+-27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,27,27,27,27,27,28,28,28,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27
+-28,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,28,28,27,27,27,27,28,28,28,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27
+-28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,28,27,27,27,27,28,28,28,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27
+-28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,28,27,27,27,27,27,28,27,27,27,27,27,28,28,27
+-28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,28,28,27,27,27,28,28,28,27,27,27,28,28,28,27
+-28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,28,28,27,27,27,28,28,28,27,27,27,28,28,28,27
+-28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,27,27,27,27,27,27,27,27
+-28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27
+-28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,27,27,27,27,27,28,27,27,27,27,27,27,27,27,27,27,27
+-28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,27,27,27,27,27,27,27,27,27,27,27
+-28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,28,28,28,27,27,27,27,27,27,27,28,28,28,27
+-28,28,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,28,28,28,27,27,27,27,27,27,27,28,28,28,27
+-27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,28,28,28,28,28,28,28,28,27,27,27,27,27,28,28,27
++-1,-1,-1,71,71,71,71,71,71,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,71,71,71,71,71,71,-1,-1
++-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
++-1,35,-1,-1,-1,44,-1,-1,71,71,71,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,95,-1,-1,-1,-1,-1,-1,71,71,71,-1,-1,-1,-1,-1,-1,-1
++68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68,68
++69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,69,69,69
++69,69,69,69,69,69,69,69,69,69,69,69,70,70,69,69,69,69,70,70,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,70,70,70
++69,69,69,69,69,69,69,69,69,69,69,69,69,70,69,69,69,69,70,70,70,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,70,70,70
++69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,69,69,69,69,70,69,69,69,69,70,69,69,69,69,70,70,70,70,69
++70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,69,69,69,70,70,70,69,69,69,70,70,69,69,69,70,70,70,69,69
++70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69
++70,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69
++70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,69
++70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,70
++70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,70,70,69,69,69,69,69,69,70,70,69,69,69,69,69,69,70,70,70
++69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,70,70,70,69,69,69,69,69,69,70,69,69,69,69,69,69,69,70,70
++69,69,70,70,70,70,69,69,69,69,70,70,69,69,69,69,69,69,70,70,70,70,70,70,70,70,70,69,69,69,69,70,70,69,69,69,69,69,69,69,69
++69,69,70,70,70,70,69,69,69,69,70,70,69,69,69,69,69,69,69,70,70,70,70,70,70,70,70,69,69,69,69,70,70,69,69,69,69,69,69,69,69
++69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,70,69,69,70,70,70,70,70,70,69,69,69,69,69
++69,69,69,69,69,69,69,70,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,70,70,70,70,70,70,70,70,70,70,70,70,70,69
++69,69,69,69,69,69,69,70,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,69,69,70,70,70,70,69,70,70,70,70,69,69
++70,69,69,69,69,69,69,70,70,69,69,69,69,69,69,70,70,70,69,69,69,69,69,70,70,69,69,69,69,69,69,70,70,69,69,69,69,69,69,69,69
++70,69,69,69,69,69,69,70,70,69,69,69,69,69,69,70,70,70,70,70,69,69,69,70,70,69,69,69,69,69,69,70,69,69,69,69,69,69,69,69,69
++69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69
+diff --git a/constants.py b/constants.py
+index da7972b..d655849 100644
+--- a/constants.py
++++ b/constants.py
+@@ -83,6 +83,13 @@ TILE_SPRITES = {
+ SOLID_TILES.update({64,65,66})
+ TILE_SPRITES.update({64:'isa_v04_raiz_passarela.png',65:'isa_v04_monte_musgo.png',66:'isa_v04_tunel_rocha.png',67:'isa_v04_raiz_escora.png'})
+ 
++# Arena em ruínas (v1.1): pedra antiga com musgo, gerada por
++# ferramentas/gerar_arte_arena_ruinas.py. IDs novos — os do templo (27-29, 63)
++# continuam válidos.
++SOLID_TILES.update({68, 69, 70, 71})
++TILE_SPRITES.update({68: 'isa_ruina_laje_musgo.png', 69: 'isa_ruina_bloco.png',
++                     70: 'isa_ruina_bloco_rachado.png', 71: 'isa_ruina_plataforma.png'})
++
+ # IDs de tile de PASSAGEM (troca de setor). NÃO entram em SOLID_TILES nem em
+ # TILE_SPRITES: são apagados da grade ao carregar e desenhados como cenário
+ # por src/passagens.py.
+@@ -243,12 +250,19 @@ AMBIENTES = {
+         "tint": (255, 255, 255),
+         "luz": (0, 0, 0),
+     },
++    # Arena em ruínas (v1.1): santuário tomado pela floresta, noite fria e
++    # enevoada. Névoa clara na altura da luta para o Gorila (escuro) não
++    # sumir no fundo. O fundo antigo (pro_arena_fundo.png) continua na pasta.
+     "arena": {
+         "estilo": "caverna",
+-        "cor_ceu": (36, 32, 43),
+-        "camadas": [("pro_arena_fundo.png", 0.13)],
+-        "tint": (255, 250, 240),
++        "cor_ceu": (8, 12, 18),
++        "camadas": [
++            ("isa_arena_ruinas_fundo.png", 0.12),
++            ("isa_arena_ruinas_frente.png", 0.35),
++        ],
++        "tint": (236, 242, 240),
+         "luz": (0, 0, 0),
++        "vagalumes": 6,
+     },
+     "caverna": {
+         "estilo": "caverna",
+@@ -425,10 +439,11 @@ GORILA_CHUVA_DANO         = 10
+ # (sem ataque durante o rugido).
+ GORILA_ANUNCIO_MS         = 2400
+ GORILA_RUGIDO_FASE_MS     = 1000
+-# Janela de punição: atordoado, o Gorila derruba um minério do lado do
+-# jogador; pegá-lo antes do fim do atordoamento devolve o minério e causa
+-# dano extra (sem pergunta). O atordoado também não machuca por contato.
+-GORILA_DANO_BONUS         = 1
++# Janela de punição: com valor > 0, o Gorila atordoado derruba um minério do
++# lado do jogador; pegá-lo causa esse dano extra SEM pergunta. DESLIGADA (0):
++# a luta exige as 8 perguntas (decisão da equipe). Atordoado, o Gorila
++# continua sem machucar por contato.
++GORILA_DANO_BONUS         = 0
+ 
+ # ── Câmera ────────────────────────────────────────────────────────────────────
+ # Tudo em tiles (multiplicado por TILE_SIZE), para acompanhar o SCALE sem
+diff --git a/docs/NPCS_E_BOSS.md b/docs/NPCS_E_BOSS.md
+index 3672f23..bfcd91b 100644
+--- a/docs/NPCS_E_BOSS.md
++++ b/docs/NPCS_E_BOSS.md
+@@ -51,7 +51,7 @@ coloque o PNG em `assets/images/npcs/npc_<nome>_0..2.png` ou use
+ | Posição | parado no centro | **salta para outro ponto** a cada 3 arremessos (2 nas fases 2–3); pouso marcado no chão 0,55 s antes; só em chão livre, nunca a menos de 4 tiles do jogador |
+ | Fases | 2 | **3**: com 1/4 da vida, **chuva de bananas** (`cacho_banana.png`) e arremessos a cada 0,8 s |
+ | Troca de fase | só o número na HUD | **faixa na tela**, fala do Gorila, tremor e **rugido sem ataque** ao acordar |
+-| Atordoado | 3 s de espera; encostar machucava | **janela de punição**: cai um minério do lado do jogador; pegá-lo tira 1 de vida extra. Atordoado não fere por contato. Estrelas sobre a cabeça |
++| Atordoado | 3 s de espera; encostar machucava | não fere por contato; estrelas sobre a cabeça. A **janela de punição** (minério caído = dano extra) existe, mas fica **desligada**: a vitória exige as **8 perguntas** |
+ | HUD | barra + "FASE" | + **MINÉRIOS DEVOLVIDOS X/8** e balão de fala |
+ 
+ Justiça (verificada em `testes/teste_boss_v1.py`):
+@@ -72,8 +72,24 @@ sonda de 1 px sob os pés mantém o estado estável.
+ `GORILA_CHUVA_ESPACO_TILES`, `GORILA_CHUVA_DANO`, `GORILA_INTERVALO_ATAQUE_F3`,
+ `GORILA_RUGIDO_FASE_MS`, `GORILA_ANUNCIO_MS`, `GORILA_DANO_BONUS`.
+ 
+-**Decisão pedagógica em aberto:** com `GORILA_DANO_BONUS = 1`, um jogador que
+-aproveita todas as janelas vence com **4 perguntas** em vez de 8 (medido no
+-teste da luta completa). Para manter 8 perguntas obrigatórias com a janela
+-de punição, aumente `GORILA_VIDA` para 12–16. Isso exige ajustar a checagem
+-`VIDA_MAX == 8` em `testes/teste_boss_projetil.py`.
++**8 perguntas obrigatórias (decisão da equipe):** `GORILA_DANO_BONUS = 0`.
++Cada minério devolvido com resposta certa tira 1 de vida e o Gorila tem 8, então
++a vitória exige 8 respostas certas (verificado no teste da luta completa). A
++janela de punição continua no código e testada; para ligá-la, use um valor
++> 0. Com ela ligada, quem aproveita todas as janelas vence com 4 perguntas.
++
++## Arena em ruínas (v1.1/v1.2)
++
++Santuário de pedra em ruínas, noite fria e enevoada, sem vermelho. **Pouca
++decoração** (pedido da equipe): o musgo está na própria pedra (tiles e
++fundo); de enfeite, só os dois obeliscos com braseiro que emolduram a luta,
++duas colunas quebradas e o pórtico da saída. A copa no alto é só um beiral,
++com poucos cipós, e há 6 vaga-lumes.
++
++A arte é gerada por `ferramentas/gerar_arte_arena_ruinas.py`: fundo em 2
++camadas, tiles 68–71 e estruturas. O arco partido continua sendo gerado,
++mas está fora da arena. A geometria da luta é a mesma.
++
++**Legibilidade:** a faixa de névoa clara fica atrás dos lutadores. `--medir`
++mostra o contraste: Gorila 46 contra fundo 75. Para voltar ao templo antigo,
++use `pro_arena_fundo.png` em `camadas`.
+diff --git a/ferramentas/gerar_arte_arena_ruinas.py b/ferramentas/gerar_arte_arena_ruinas.py
+new file mode 100644
+index 0000000..8c6e4bd
+--- /dev/null
++++ b/ferramentas/gerar_arte_arena_ruinas.py
+@@ -0,0 +1,366 @@
++"""
++gerar_arte_arena_ruinas.py — arte da ARENA EM RUÍNAS (pixel art).
++
++"Ruínas de pedra tomadas pela floresta, clima sombrio": um santuário antigo
++onde a mata entrou — colunas quebradas cobertas de musgo, muralha
++desmoronando, cipós e copas invadindo pelo alto, noite fria e enevoada com
++lua pálida (sem vermelho: paleta de azul-acinzentado e verde-musgo).
++
++Gera (resolução nativa, o jogo amplia sem suavizar):
++  assets/images/backgrounds/isa_arena_ruinas_fundo.png   400x200 (x3 = 1200x600, opaco)
++  assets/images/backgrounds/isa_arena_ruinas_frente.png  400x200 (transparente, paralaxe)
++  assets/images/tiles/isa_ruina_laje_musgo.png           16x16  chão (topo)
++  assets/images/tiles/isa_ruina_bloco.png                16x16  preenchimento
++  assets/images/tiles/isa_ruina_bloco_rachado.png        16x16  preenchimento (variação)
++  assets/images/tiles/isa_ruina_plataforma.png           16x16  plataforma
++  assets/images/cenarios/isa_ruina_coluna_alta.png       coluna quebrada alta
++  assets/images/cenarios/isa_ruina_coluna_quebrada.png   coluna quebrada baixa
++  assets/images/cenarios/isa_ruina_arco.png              arco em ruína
++
++LEGIBILIDADE: o Gorila é quase preto. O fundo tem uma faixa de NÉVOA mais
++clara exatamente na altura em que a luta acontece (linhas nativas ~85-150),
++e as ruínas próximas ficam em tom médio — nada escuro atrás dos lutadores.
++`--medir` imprime o contraste de luminância entre o Gorila e essa faixa.
++
++Tudo é determinístico (ruído por hash): rodar de novo dá os mesmos PNGs.
++uso:  python ferramentas/gerar_arte_arena_ruinas.py [--previa saida.png] [--medir]
++"""
++import math
++import os
++import sys
++from pathlib import Path
++
++RAIZ = Path(__file__).resolve().parents[1]
++os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
++import pygame  # noqa: E402
++
++LB, AB = 400, 200          # fundo nativo
++
++# ── paleta ────────────────────────────────────────────────────────────────────
++CEU_TOPO = (8, 12, 18)
++CEU_MEIO = (20, 30, 40)
++HORIZONTE = (58, 76, 84)       # luar frio no horizonte
++NEVOA = (98, 112, 116)         # névoa clara atrás dos lutadores
++LUA = (226, 214, 196)
++MURO_LONGE = (58, 66, 76)
++MATA_LONGE = (30, 48, 44)
++PEDRA = ((112, 116, 122), (86, 90, 98), (62, 64, 74), (138, 142, 144))  # base, sombra, escura, luz
++MUSGO = ((70, 108, 56), (96, 140, 70), (46, 74, 42))
++FOLHA = ((26, 54, 38), (40, 78, 50), (18, 38, 28))
++CIPO = (52, 96, 50)
++CONTORNO = (20, 18, 26)
++
++
++def h(x, y, s=0):
++    v = (x * 374761393 + y * 668265263 + s * 2147483647) & 0xFFFFFFFF
++    v = ((v ^ (v >> 13)) * 1274126177) & 0xFFFFFFFF
++    return ((v ^ (v >> 16)) & 0xFFFF) / 65535.0
++
++
++def ruido1(x, s=0, esc=8.0):
++    x0 = math.floor(x / esc)
++    t = x / esc - x0
++    t = t * t * (3 - 2 * t)
++    return h(x0, 0, s) * (1 - t) + h(x0 + 1, 0, s) * t
++
++
++def mix(a, b, t):
++    t = max(0.0, min(1.0, t))
++    return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
++
++
++def px(s, x, y, c):
++    w, hh = s.get_size()
++    if 0 <= y < hh:
++        s.set_at((x % w, y), c)   # x embrulha: camadas emendam sem costura
++
++
++def ret(s, x, y, w, hh, c):
++    for yy in range(y, y + hh):
++        for xx in range(x, x + w):
++            px(s, xx, yy, c)
++
++
++# ── fundo (camada 0, opaca) ───────────────────────────────────────────────────
++def fundo():
++    s = pygame.Surface((LB, AB))
++    for y in range(AB):
++        if y < 70:
++            c = mix(CEU_TOPO, CEU_MEIO, y / 70)
++        elif y < 118:
++            c = mix(CEU_MEIO, HORIZONTE, (y - 70) / 48)
++        else:
++            c = mix(HORIZONTE, NEVOA, (y - 118) / 22)
++        for x in range(LB):
++            s.set_at((x, y), c)
++    # lua com halo
++    cx, cy, r = 292, 42, 13
++    for y in range(cy - 30, cy + 31):
++        for x in range(cx - 30, cx + 31):
++            d = math.hypot(x - cx, y - cy)
++            if d <= r:
++                c = LUA if h(x, y, 3) > 0.12 or d < r - 3 else (196, 186, 170)
++                px(s, x, y, c)
++            elif d < 30:
++                px(s, x, y, mix(s.get_at((x, y))[:3], (96, 112, 120), 0.35 * (1 - (d - r) / (30 - r))))
++    # faixas de nuvem escura (embrulham)
++    for banda, (y0, esp) in enumerate(((30, 4), (48, 3), (62, 5), (86, 3))):
++        for x in range(LB):
++            alt = int(esp * ruido1(x, 10 + banda, 22))
++            if ruido1(x, 20 + banda, 40) > 0.45:
++                for y in range(y0, y0 + alt):
++                    px(s, x, y, mix(s.get_at((x % LB, y))[:3], (12, 18, 24), 0.7))
++    # muralha distante com torres quebradas (silhueta enevoada)
++    for x in range(LB):
++        seg = x // 14                           # trechos retos de muralha
++        topo = 114 + int(4 * h(seg, 0, 30))
++        torre = h(x // 26, 0, 31) > 0.66 and (x % 26) < 16
++        if torre:
++            topo = 82 + int(18 * h(x // 26, 1, 33))
++            if (x % 26) > 10 and h(x // 26, 2, 34) > 0.5:
++                topo += 3 + (x % 26 - 10) * 2   # canto desmoronado
++            elif (x % 4) < 2:
++                topo -= 2                       # ameias da torre
++        elif (x // 4) % 2 == 0:
++            topo -= 2                           # ameias
++        for y in range(topo, 150):
++            c = mix(MURO_LONGE, NEVOA, (y - topo) / 60 + 0.1)
++            if torre and 92 < y < 100 and (x % 26) in (6, 7):
++                c = mix(HORIZONTE, LUA, 0.2)    # janelas com o céu atrás
++            px(s, x, y, c)
++    # mata distante na frente da muralha
++    for x in range(LB):
++        topo = 128 + int(10 * ruido1(x, 40, 9)) + int(4 * ruido1(x, 41, 3))
++        for y in range(topo, AB):
++            px(s, x, y, mix(MATA_LONGE, NEVOA, 0.25 + 0.4 * max(0, (y - topo)) / 40))
++    # névoa: véu claro na faixa da luta
++    for y in range(84, 152):
++        a = 0.22 * math.sin(math.pi * (y - 84) / 68)
++        for x in range(LB):
++            px(s, x, y, mix(s.get_at((x, y))[:3], NEVOA, a))
++    return s
++
++
++# ── frente (camada 1, transparente) ───────────────────────────────────────────
++def pedra_tex(s, x0, y0, w, hh, seed, enevoar=0.0, tijolo=(8, 5), origem=None):
++    """Bloco de pedra com juntas, variação por tijolo, rachaduras e borda.
++    `origem`: (x, y) da grade de tijolos — permite pintar coluna a coluna
++    mantendo os tijolos alinhados."""
++    bw, bh = tijolo
++    ox, oy = origem if origem is not None else (x0, y0)
++    for y in range(y0, y0 + hh):
++        fila = (y - oy) // bh
++        off = (bw // 2) * (fila % 2)
++        for x in range(x0, x0 + w):
++            bx = (x - ox + off) // bw
++            junta = (y - oy) % bh == 0 or (x - ox + off) % bw == 0
++            var = h(bx, fila, seed)
++            c = PEDRA[2] if junta else (PEDRA[1] if var < 0.35 else PEDRA[0])
++            if not junta and (y - oy) % bh == 1 and var > 0.5:
++                c = PEDRA[3]                    # luz na aresta superior
++            if not junta and h(x, y, seed + 5) > 0.985:
++                c = PEDRA[2]                    # pontinhos/rachaduras
++            px(s, x, y, mix(c, NEVOA, enevoar))
++
++
++def musgo(s, x0, y0, w, seed, prof=3, enevoar=0.0):
++    for x in range(x0, x0 + w):
++        n = int(prof * ruido1(x, seed, 3) + 1)
++        for k in range(n):
++            c = MUSGO[1] if k == 0 else (MUSGO[0] if k < n - 1 else MUSGO[2])
++            px(s, x, y0 + k, mix(c, NEVOA, enevoar))
++        if h(x, 0, seed + 1) > 0.8:             # gotas de musgo escorrendo
++            for k in range(n, n + 2 + int(4 * h(x, 1, seed))):
++                px(s, x, y0 + k, mix(MUSGO[2], NEVOA, enevoar))
++
++
++def cipo(s, x, y0, comp, seed, enevoar=0.0):
++    for k in range(comp):
++        xx = x + int(1.5 * math.sin((k + seed) / 4))
++        px(s, xx, y0 + k, mix(CIPO, NEVOA, enevoar))
++        if k % 5 == 2:
++            px(s, xx + 1, y0 + k, mix(MUSGO[1], NEVOA, enevoar))
++            px(s, xx - 1, y0 + k + 1, mix(MUSGO[0], NEVOA, enevoar))
++
++
++def coluna_quebrada(s, x, base, larg, alt, seed, enevoar=0.0):
++    topo = base - alt
++    # base e capitel tombado
++    ret(s, x - 2, base - 6, larg + 4, 6, mix(PEDRA[1], NEVOA, enevoar))
++    ret(s, x - 2, base - 6, larg + 4, 1, mix(PEDRA[3], NEVOA, enevoar))
++    for xx in range(x, x + larg):
++        quebra = topo + int(7 * h(xx // 2, 0, seed))          # topo irregular
++        for y in range(quebra, base - 6):
++            lado = (xx - x) / max(1, larg - 1)
++            c = PEDRA[3] if lado < 0.18 else (PEDRA[1] if lado > 0.72 else PEDRA[0])
++            if (base - 6 - y) % 14 == 0:
++                c = PEDRA[2]                                   # tambores da coluna
++            elif (base - 6 - y) % 14 == 1 and lado < 0.72:
++                c = PEDRA[3]
++            if h(xx // 2, y // 3, seed + 9) > 0.985:
++                c = PEDRA[1]                                   # manchas de desgaste
++            px(s, xx, y, mix(c, NEVOA, enevoar))
++        musgo(s, xx, quebra, 1, seed + 2, prof=3, enevoar=enevoar)
++    # rachadura diagonal
++    cx = x + larg // 2
++    for k in range(alt // 2):
++        px(s, cx + int(2 * math.sin(k / 3)), topo + 10 + k, mix(PEDRA[2], NEVOA, enevoar))
++    # um cipó descendo (pouca vegetação: o musgo está na pedra)
++    cipo(s, x + 2, topo + 4, alt // 3 + int(8 * h(0, 3, seed)), seed, enevoar)
++
++
++def frente():
++    s = pygame.Surface((LB, AB), pygame.SRCALPHA)
++    nev = 0.28
++    # muro baixo desmoronando ao longo da base (embrulha)
++    for x in range(LB):
++        topo = 132 + int(8 * ruido1(x, 50, 11)) + (4 if h(x // 6, 0, 51) > 0.8 else 0)
++        pedra_tex(s, x, topo, 1, AB - topo, 52, nev, origem=(0, 120))
++        musgo(s, x, topo, 1, 53, prof=2, enevoar=nev)
++    # colunas quebradas em alturas variadas
++    for i, (x, larg, alt) in enumerate(((18, 18, 88), (112, 16, 58), (196, 20, 104), (300, 16, 70), (366, 18, 46))):
++        coluna_quebrada(s, x, 140, larg, alt, 60 + i, nev)
++    # copa invadindo pelo alto: folhagem pendente + cipós
++    for x in range(LB):
++        fundo_folha = 4 + int(7 * ruido1(x, 70, 7)) + int(3 * ruido1(x, 71, 2.5))   # copa: só um beiral
++        for y in range(0, fundo_folha):
++            c = FOLHA[1] if h(x, y, 72) > 0.7 else (FOLHA[0] if y < fundo_folha - 2 else FOLHA[2])
++            px(s, x, y, c)
++        if h(x, 0, 73) > 0.985:
++            cipo(s, x, fundo_folha - 1, 14 + int(24 * h(x, 1, 74)), x, 0.1)
++    return s
++
++
++# ── tiles 16x16 ───────────────────────────────────────────────────────────────
++def tile_bloco(rachado=False, seed=0):
++    s = pygame.Surface((16, 16))
++    pedra_tex(s, 0, 0, 16, 16, 80 + seed, 0.18, tijolo=(8, 8))
++    # mais escuro que a laje do topo: o piso jogável se destaca da massa abaixo
++    for y in range(16):
++        for x in range(16):
++            c = s.get_at((x, y))[:3]
++            s.set_at((x, y), (int(c[0] * 0.56), int(c[1] * 0.58), int(c[2] * 0.62)))
++    if rachado:
++        for k in range(10):
++            s.set_at((4 + k // 2 + (k % 3 == 0), 3 + k), (30, 30, 38))
++        for x in (10, 11, 12):
++            s.set_at((x, 14), MUSGO[2])
++        s.set_at((11, 13), MUSGO[0])
++    return s
++
++
++def tile_laje():
++    s = pygame.Surface((16, 16))
++    pedra_tex(s, 0, 0, 16, 16, 90, 0.1, tijolo=(16, 16))
++    for x in range(16):
++        s.set_at((x, 15), PEDRA[2])
++        s.set_at((x, 4), PEDRA[2])
++    s.set_at((7, 9), PEDRA[2]); s.set_at((8, 10), PEDRA[2])
++    musgo(s, 0, 0, 16, 91, prof=3)
++    return s
++
++
++def tile_plataforma():
++    s = pygame.Surface((16, 16), pygame.SRCALPHA)
++    pedra_tex(s, 0, 2, 16, 11, 95, 0.1, tijolo=(8, 11))
++    for x in range(16):
++        s.set_at((x, 12), PEDRA[2])
++    musgo(s, 0, 1, 16, 96, prof=2)
++    for x in (3, 9, 13):                         # musgo pendurado
++        for k in range(13, 13 + 1 + int(2 * h(x, 0, 97))):
++            s.set_at((x, k), MUSGO[2])
++    return s
++
++
++# ── estruturas (nativo; o jogo amplia x SCALE) ────────────────────────────────
++def estrutura_coluna(larg, alt, seed):
++    s = pygame.Surface((larg + 12, alt + 8), pygame.SRCALPHA)
++    coluna_quebrada(s, 6, alt + 8, larg, alt, seed, 0.0)
++    return _contornar(s)
++
++
++def estrutura_arco():
++    W, H = 240, 176
++    s = pygame.Surface((W, H), pygame.SRCALPHA)
++    coluna_quebrada(s, 14, H, 26, 150, 201, 0.0)
++    coluna_quebrada(s, W - 40, H, 26, 96, 202, 0.0)
++    # arco partido: só a metade esquerda sobrevive
++    cx, cy, r_ext, r_int = W // 2, 112, 104, 86     # topo do arco em y=8
++    for y in range(cy - r_ext, cy + 4):
++        for x in range(14, cx + 18):
++            d = math.hypot(x - cx, y - cy)
++            if r_int <= d <= r_ext and y <= cy:
++                ang = math.degrees(math.atan2(cy - y, x - cx))
++                if ang < 70 or ang > 182:
++                    continue
++                lado = (d - r_int) / (r_ext - r_int)
++                c = PEDRA[3] if lado > 0.85 else (PEDRA[1] if lado < 0.2 else PEDRA[0])
++                if int(ang) % 12 == 0:
++                    c = PEDRA[2]                 # aduelas
++                px(s, x, y, c)
++    # ponta quebrada com musgo e raízes caindo
++    for x in range(cx - 6, cx + 18):
++        for k in range(3):
++            y = cy - r_ext + 2 + k + int(3 * h(x, 0, 205))
++            if s.get_at((x, y)).a:
++                px(s, x, y, MUSGO[k % 3])
++    for i, x in enumerate((44, 70, 96, 118)):
++        cipo(s, x, cy - int(math.sqrt(max(0, r_ext ** 2 - (x - cx) ** 2))) + 6, 30 + 12 * i, 210 + i)
++    return _contornar(s)
++
++
++def _contornar(s):
++    out = s.copy()
++    w, hh = s.get_size()
++    for y in range(hh):
++        for x in range(w):
++            if s.get_at((x, y)).a:
++                continue
++            if any(0 <= x + dx < w and 0 <= y + dy < hh and s.get_at((x + dx, y + dy)).a
++                   for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
++                out.set_at((x, y), CONTORNO)
++    return out
++
++
++def lum(c):
++    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
++
++
++def main(argv=None):
++    argv = sys.argv[1:] if argv is None else argv
++    pygame.init()
++    pygame.display.set_mode((1, 1))
++    A = RAIZ / "assets" / "images"
++    saida = {
++        A / "backgrounds" / "isa_arena_ruinas_fundo.png": fundo(),
++        A / "backgrounds" / "isa_arena_ruinas_frente.png": frente(),
++        A / "tiles" / "isa_ruina_laje_musgo.png": tile_laje(),
++        A / "tiles" / "isa_ruina_bloco.png": tile_bloco(False, 0),
++        A / "tiles" / "isa_ruina_bloco_rachado.png": tile_bloco(True, 1),
++        A / "tiles" / "isa_ruina_plataforma.png": tile_plataforma(),
++        A / "cenarios" / "isa_ruina_coluna_alta.png": estrutura_coluna(22, 190, 301),
++        A / "cenarios" / "isa_ruina_coluna_quebrada.png": estrutura_coluna(22, 120, 302),
++        A / "cenarios" / "isa_ruina_arco.png": estrutura_arco(),
++    }
++    for caminho, surf in saida.items():
++        pygame.image.save(surf, str(caminho))
++    print(f"{len(saida)} imagens gravadas")
++    if "--medir" in argv:
++        f = saida[A / "backgrounds" / "isa_arena_ruinas_fundo.png"]
++        faixa = [lum(f.get_at((x, y))) for y in range(90, 148) for x in range(0, LB, 3)]
++        g = pygame.image.load(str(A / "inimigos" / "gorila_01.png"))
++        pix = [g.get_at((x, y)) for x in range(0, g.get_width(), 2) for y in range(0, g.get_height(), 2)]
++        lg = sum(lum(p) for p in pix if p.a > 200) / max(1, sum(1 for p in pix if p.a > 200))
++        lf = sum(faixa) / len(faixa)
++        print(f"luminancia media: gorila {lg:.0f} | faixa da luta no fundo {lf:.0f} "
++              f"(min {min(faixa):.0f}) | diferenca {lf - lg:.0f}")
++    if "--previa" in argv:
++        destino = argv[argv.index("--previa") + 1]
++        prev = pygame.Surface((LB * 2, AB * 2))
++        prev.blit(pygame.transform.scale(saida[A / "backgrounds" / "isa_arena_ruinas_fundo.png"], (LB * 2, AB * 2)), (0, 0))
++        prev.blit(pygame.transform.scale(saida[A / "backgrounds" / "isa_arena_ruinas_frente.png"], (LB * 2, AB * 2)), (0, 0))
++        pygame.image.save(prev, destino)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/ferramentas/redesign_mapas/arena.py b/ferramentas/redesign_mapas/arena.py
+index 2a8aa5f..39f551b 100644
+--- a/ferramentas/redesign_mapas/arena.py
++++ b/ferramentas/redesign_mapas/arena.py
+@@ -1,57 +1,66 @@
+-"""ARENA — 41 x 44. Clareira-santuário do Gorila.
+-
+-A geometria da luta NÃO muda: piso na linha 24, plataformas 63 nas mesmas
+-células (validadas por gerar_mundo.validar_area_boss e teste_boss), marcadores
+-nas mesmas células. Muda:
+-  * o preenchimento do piso: as faixas diagonais de templo (tTTTT repetido a
+-    cada 5 colunas) viram blocos com variação orgânica;
+-  * a decoração: as colunas de runas quebradas e soltas no ar (113 em pilhas
+-    com buracos) viram dois obeliscos apoiados no chão; estandartes e
+-    lanternas passam a pendurar das plataformas; tochas no chão e sobre as
+-    plataformas altas. O centro da luta fica limpo.
++"""ARENA v1.1 — 41 x 44. Santuário em ruínas tomado pela floresta.
++
++A geometria da luta NÃO muda: piso na linha 24, plataformas nas mesmas
++células (validadas por gerar_mundo.validar_area_boss e teste_boss),
++marcadores nas mesmas células. Muda a PELE:
++
++  * tiles: pedra antiga com musgo (IDs 68-71, ferramentas/gerar_arte_arena_ruinas.py)
++    no lugar do templo limpo (27-29, 63);
++  * estruturas: duas colunas quebradas no lugar das colunas e estandartes
++    do santuário; o pórtico da saída fica (marca a saída);
++  * decoração MÍNIMA (pedido da equipe: "não precisa de muita decoração"):
++    só os dois obeliscos de runas com braseiro, que emolduram e iluminam o
++    palco. O musgo fica na própria pedra (tiles e fundo), não em enfeites.
+ """
+ import os
+-from kit import Grade, Compositor, ler_csv, ruido, acaso, VAZIO
++from kit import Grade, Compositor, ler_csv, ruido, VAZIO
+ 
+-TEMPLO, TEMPLO_VAR, LAJE = 27, 28, 29
+-TOCHA, BANDEIRA, LANTERNA, RUNAS = 104, 108, 109, 113
++TOPO, BLOCO, RACHADO, PLATAFORMA = 68, 69, 70, 71
++ANTIGOS_TOPO, ANTIGOS_BLOCO, ANTIGOS_PLAT = {29, 68}, {27, 28, 69, 70}, {63, 71}
++TOCHA, RUNAS = 104, 113
+ 
+ 
+ def construir():
+-    # Geometria lida do próprio arena.csv do jogo (não é alterada aqui; só o
+-    # preenchimento do piso é refeito), então rodar de novo dá o mesmo resultado.
++    # Geometria lida do próprio arena.csv do jogo (aceita os IDs antigos e os
++    # novos), então rodar de novo dá o mesmo resultado.
+     base = ler_csv(os.path.join(os.environ["ISA_JOGO"], "assets", "levels", "setores", "arena.csv"))
+     L, C = len(base), len(base[0])
+     t = Grade(L, C)
+     for r in range(L):
+         for c in range(C):
+             v = base[r][c]
+-            if v in (TEMPLO, TEMPLO_VAR):
+-                v = TEMPLO_VAR if ruido(c, r, 81, 3.2) > 0.64 else TEMPLO
++            if v in ANTIGOS_TOPO:
++                v = TOPO
++            elif v in ANTIGOS_BLOCO:
++                v = RACHADO if ruido(c, r, 81, 2.6) > 0.70 else BLOCO
++            elif v in ANTIGOS_PLAT:
++                v = PLATAFORMA
+             t.g[r][c] = v
+-    return t, decorar(t), None   # estruturas da arena mantidas
++    return t, decorar(t), estruturas()
+ 
+ 
+ def decorar(t):
+     import constants
+     comp = Compositor(t, constants.SOLID_TILES, constants.TILES_MARCADORES)
+     comp.reservar(0, 2, 22, 23)            # saída
+-    comp.reservar(4, 6, 23, 23)            # chegada
+-    comp.reservar(16, 32, 12, 23)          # palco da luta: limpo
++    comp.reservar(4, 6, 22, 23)            # chegada
++    comp.reservar(16, 32, 10, 23)          # palco da luta: limpo
++    comp.reservar(5, 7, 20, 20)            # maçãs das plataformas
++    comp.reservar(35, 37, 20, 20)
+ 
+-    # v0.8 — moldura da luta: dois obeliscos de runas iguais marcam as bordas
+-    # do palco (cols 14 e 34), cada um com uma tocha do lado de fora. O centro
+-    # (16-32) fica limpo: o jogador lê o Gorila e os projéteis sem ruído.
++    # Obeliscos de runas (ruínas do santuário) com braseiro no topo: as únicas
++    # luzes quentes da arena, emoldurando o palco.
+     for c in (14, 34):
+         for i in range(3):
+             comp.por(c, 23 - i, RUNAS)
+-    # v0.9: braseiro no topo de cada obelisco (as tochas de chão ficavam na
+-    # frente dos estandartes de pedra); tochas nas pontas das plataformas altas.
+-    for c, r in ((14, 20), (34, 20), (3, 20), (38, 20)):
+-        comp.por(c, r, TOCHA)
+-    # Estandartes e lanternas pendurados das plataformas altas (linha 21).
+-    comp.pendurar(4, 22, [BANDEIRA])
+-    comp.pendurar(37, 22, [BANDEIRA])
+-    comp.pendurar(7, 22, [LANTERNA])
+-    comp.pendurar(34, 22, [LANTERNA])
++        comp.por(c, 20, TOCHA)
+     return comp.d
++
++
++def estruturas():
++    """Duas colunas quebradas no fundo; o pórtico continua marcando a saída."""
++    return [
++        {"imagem": "isa_ruina_coluna_alta.png", "coluna": 11.5, "base": 24.15},
++        {"imagem": "isa_ruina_coluna_quebrada.png", "coluna": 39.5, "base": 24.15},
++        {"imagem": "isa_arena_portico_retorno.png", "coluna": 5, "base": 25},
++    ]
+diff --git a/src/ambientes.py b/src/ambientes.py
+index a30c9fe..04e1050 100644
+--- a/src/ambientes.py
++++ b/src/ambientes.py
+@@ -1,520 +1,554 @@
+-"""
+-Ambientes dinâmicos — troca de background por ALTURA, dentro da mesma fase.
+-
+-Ideia central
+--------------
+-O nível continua sendo um só (mesmo CSV, mesmo player, mesma progressão).
+-O que muda é a ATMOSFERA: conforme o jogador sobe ou desce, o conjunto de
+-camadas de paralaxe ao fundo é trocado — copas das árvores em cima, floresta
+-no meio, caverna embaixo — dissolvendo um ambiente no outro.
+-
+-    y menor  ↑   copas das árvores
+-                 floresta          (zona central, ambiente principal)
+-    y maior  ↓   caverna
+-
+-Em pygame o Y cresce para BAIXO, então a lista de zonas em ordem crescente
+-já sai naturalmente na ordem copas → floresta → caverna.
+-
+-Como o crossfade funciona
+--------------------------
+-Cada ambiente sabe se desenhar sozinho numa Surface. Numa fronteira:
+-
+-    1. o ambiente que SAI é desenhado direto na tela (alpha cheio);
+-    2. o ambiente que ENTRA é desenhado num buffer reaproveitado;
+-    3. o buffer recebe set_alpha(t * 255) e é blitado por cima.
+-
+-Como a camada de fundo de todo ambiente é opaca, o buffer é 100% opaco e o
+-set_alpha se comporta como uma dissolução linear exata. Nenhuma Surface é
+-alocada por frame: o buffer nasce uma vez só.
+-
+-O `t` vem da POSIÇÃO, não de um cronômetro. É isso que dá a reversibilidade
+-pedida: subir desfaz a mistura na mesma proporção que descer fez. Não depende
+-de FPS e nunca fica presa no meio se o jogo travar.
+-
+-Por que existe suavização
+--------------------------
+-No eixo X a posição do jogador é monótona e lenta. No eixo Y não: um pulo
+-sobe e desce 3 tiles em meio segundo. Ler a altura crua faria o background
+-piscar a cada pulo. Por isso a referência passa por um filtro passa-baixa —
+-um pulo é rápido demais para mover o ambiente, uma descida sustentada não é.
+-Ajuste em constants.SUAVIZACAO_AMBIENTE.
+-
+-Assets ausentes
+----------------
+-Camadas sem PNG correspondente em assets/images/backgrounds são desenhadas
+-por geração procedural (somas de senos com frequência inteira, portanto sem
+-costura no tiling). Quando a arte real chegar, basta soltar o arquivo na
+-pasta: o carregamento por disco tem prioridade e o procedural some sozinho.
+-"""
+-
+-import math
+-
+-import pygame
+-
+-import constants
+-from utils import carregar_imagem
+-
+-# Amostragem das silhuetas procedurais. 6px já sai lisa depois de escalada.
+-_PASSO = 6
+-
+-_NEUTRO_MULT = (255, 255, 255)
+-_NEUTRO_ADD = (0, 0, 0)
+-
+-# Superfícies de cor sólida para a tonalidade/luz, uma por (tamanho, cor).
+-# blit com BLEND_RGB_MULT/ADD dá o MESMO resultado pixel a pixel que
+-# fill(..., BLEND_MULT/ADD), mas usa o caminho SIMD do pygame: medido em
+-# 960x600, 4,8 ms -> 0,2 ms por camada. Nas copas (tinta + luz) o fill era
+-# ~60% do tempo do quadro.
+-_cache_cor = {}
+-
+-
+-def _aplicar_cor(surface, cor, modo):
+-    chave = (surface.get_size(), surface.get_bitsize(), cor)
+-    sup = _cache_cor.get(chave)
+-    if sup is None:
+-        if len(_cache_cor) > 16:   # dissolução contínua gera cores novas
+-            _cache_cor.clear()
+-        sup = pygame.Surface(surface.get_size(), 0, surface)
+-        sup.fill(cor)
+-        _cache_cor[chave] = sup
+-    surface.blit(sup, (0, 0), special_flags=modo)
+-
+-
+-# ── Geração procedural (usada só quando o PNG não existe) ─────────────────────
+-def _perfil(largura, base, harmonicos, afiado=False):
+-    """
+-    Linha do horizonte de uma silhueta, como soma de senos.
+-
+-    As frequências são INTEIRAS em relação à largura, então f(0) == f(L) e a
+-    imagem repete lado a lado sem emenda. `afiado=True` aplica abs() na onda,
+-    trocando colinas por picos — é o que dá cara de estalactite.
+-    """
+-    pontos = []
+-    for x in range(0, largura + _PASSO, _PASSO):
+-        v = 0.0
+-        for freq, amp, fase in harmonicos:
+-            v += amp * math.sin(2 * math.pi * freq * x / largura + fase)
+-        if afiado:
+-            v = abs(v)
+-        pontos.append((x, base + v))
+-    return pontos
+-
+-
+-def _silhueta_inferior(surface, largura, altura, base, harmonicos, cor, afiado=False):
+-    """Massa sólida que sobe do rodapé até a linha do perfil."""
+-    pontos = _perfil(largura, base, harmonicos, afiado)
+-    pygame.draw.polygon(surface, cor, pontos + [(largura, altura), (0, altura)])
+-
+-
+-def _silhueta_superior(surface, largura, base, harmonicos, cor, afiado=False):
+-    """Massa sólida que desce do topo até a linha do perfil."""
+-    pontos = _perfil(largura, base, harmonicos, afiado)
+-    pygame.draw.polygon(surface, cor, pontos + [(largura, 0), (0, 0)])
+-
+-
+-def _pinheiros(surface, largura, altura, base, cor, espacamento, escala):
+-    """
+-    Coníferas sobre a linha do terreno. Todas ficam inteiramente dentro da
+-    imagem (a primeira em espacamento/2), então nenhuma é cortada pela emenda.
+-    """
+-    x = espacamento // 2
+-    i = 0
+-    while x < largura - espacamento // 2:
+-        # Alturas variadas mas determinísticas: idêntico em toda máquina.
+-        h = escala * (0.75 + 0.25 * math.sin(i * 2.399))
+-        larg = h * 0.45
+-        pygame.draw.polygon(
+-            surface,
+-            cor,
+-            [
+-                (x, base - h),
+-                (x - larg / 2, base + altura * 0.05),
+-                (x + larg / 2, base + altura * 0.05),
+-            ],
+-        )
+-        x += espacamento
+-        i += 1
+-
+-
+-def _folhagem(surface, largura, cor, base, raio, espacamento):
+-    """Bolhas de copa penduradas no topo, para o ambiente 'copas'."""
+-    x = espacamento // 2
+-    i = 0
+-    while x < largura - espacamento // 2:
+-        r = raio * (0.7 + 0.3 * math.sin(i * 1.713))
+-        y = base + raio * 0.4 * math.sin(i * 0.941)
+-        pygame.draw.circle(surface, cor, (int(x), int(y)), int(r))
+-        x += espacamento
+-        i += 1
+-
+-
+-def _gerar_camada(estilo, indice, largura, altura):
+-    """
+-    Uma camada de paralaxe desenhada na mão. `indice` 0 é o fundo (mais claro
+-    e distante); índices maiores são frontais (mais escuros, mais movimento).
+-    """
+-    surf = pygame.Surface((largura, altura), pygame.SRCALPHA)
+-    fundo = indice == 0
+-
+-    if estilo == "caverna":
+-        cor = (58, 48, 66) if fundo else (28, 22, 34)
+-        # Teto e chão de rocha com picos apontando para dentro. Amplitudes
+-        # generosas de propósito: com picos tímidos sobrava uma faixa lisa no
+-        # meio e a caverna virava um retângulo preto.
+-        _silhueta_superior(
+-            surf,
+-            largura,
+-            altura * (0.20 if fundo else 0.10),
+-            [(3, altura * 0.26, 0.0), (7, altura * 0.11, 1.9), (13, altura * 0.05, 4.1)],
+-            cor,
+-            afiado=True,
+-        )
+-        _silhueta_inferior(
+-            surf,
+-            largura,
+-            altura,
+-            altura * (0.74 if fundo else 0.86),
+-            [(4, -altura * 0.24, 1.2), (9, -altura * 0.10, 3.3), (15, -altura * 0.04, 0.7)],
+-            cor,
+-            afiado=True,
+-        )
+-
+-    elif estilo == "copas":
+-        cor = (46, 82, 44) if fundo else (18, 42, 22)
+-        _silhueta_superior(
+-            surf,
+-            largura,
+-            altura * (0.46 if fundo else 0.30),
+-            [(2, altura * 0.12, 0.6), (5, altura * 0.06, 2.4), (11, altura * 0.025, 5.0)],
+-            cor,
+-        )
+-        _folhagem(surf, largura, cor, altura * (0.48 if fundo else 0.32), altura * 0.11, 130)
+-        # Galhos descendo da copa. Espessos: com 5px viravam gravetos no ar.
+-        passo = 190 if fundo else 150
+-        x = passo // 2
+-        while x < largura - passo // 2:
+-            pygame.draw.line(
+-                surf, cor, (x, altura * 0.25), (x, altura * (0.68 if fundo else 0.86)), 11
+-            )
+-            x += passo
+-        # Copa distante no rodapé: sem ela sobrava uma faixa chapada do céu.
+-        if fundo:
+-            _silhueta_inferior(
+-                surf,
+-                largura,
+-                altura,
+-                altura * 0.86,
+-                [(3, -altura * 0.06, 1.4), (8, -altura * 0.025, 3.7)],
+-                (74, 108, 72),
+-            )
+-
+-    else:  # "floresta" e qualquer estilo desconhecido
+-        cor = (40, 70, 50) if fundo else (18, 34, 26)
+-        base = altura * (0.58 if fundo else 0.74)
+-        _silhueta_inferior(
+-            surf,
+-            largura,
+-            altura,
+-            base,
+-            [(2, -altura * 0.07, 0.3), (5, -altura * 0.035, 2.1), (11, -altura * 0.015, 4.4)],
+-            cor,
+-        )
+-        _pinheiros(
+-            surf,
+-            largura,
+-            altura,
+-            base,
+-            cor,
+-            espacamento=150 if fundo else 110,
+-            escala=altura * (0.20 if fundo else 0.34),
+-        )
+-
+-    return surf.convert_alpha()
+-
+-
+-# ── Partículas atmosféricas ───────────────────────────────────────────────────
+-class Camada:
+-    """Uma faixa de paralaxe: imagem repetida no eixo X a uma dada velocidade."""
+-
+-    __slots__ = ("img", "fator", "largura")
+-
+-    def __init__(self, img, fator):
+-        self.img = img
+-        self.fator = fator
+-        self.largura = img.get_width()
+-
+-    def desenhar(self, surface, camera_x):
+-        larg = self.largura
+-        limite = surface.get_width()
+-        # Offset sempre em [0, larg): o loop começa uma imagem à esquerda
+-        # para não abrir buraco na borda.
+-        x = (int(-camera_x * self.fator) % larg) - larg
+-        while x < limite:
+-            surface.blit(self.img, (x, 0))
+-            x += larg
+-
+-
+-class Ambiente:
+-    """Camadas + céu + atmosfera. Sabe se desenhar por inteiro."""
+-
+-    def __init__(self, nome, cor_ceu, camadas, tint, luz):
+-        self.nome = nome
+-        self.cor_ceu = cor_ceu
+-        self.camadas = camadas
+-        self.tint = tint            # multiplicativo, (255,255,255) = neutro
+-        self.luz = luz              # aditivo, (0,0,0) = neutro
+-
+-    @classmethod
+-    def criar(cls, nome, config, largura, altura):
+-        estilo = config.get("estilo", nome)
+-        cor_ceu = config.get("cor_ceu", (0, 0, 0))
+-        camadas = []
+-
+-        for indice, (arquivo, fator) in enumerate(config.get("camadas", [])):
+-            img = cls._carregar(arquivo, altura)
+-            if img is None:
+-                # Sem arte ainda: silhueta procedural com largura confortável
+-                # (nunca menor que a tela, para poucos blits por frame).
+-                img = _gerar_camada(estilo, indice, max(1024, largura), altura)
+-            if indice == 0:
+-                # A camada do fundo é achatada contra o céu e perde o alpha.
+-                # Duas economias medidas: o fill() da tela some (esta camada
+-                # já cobre tudo) e o blit vira cópia crua, não mistura.
+-                img = cls._achatar(img, cor_ceu, altura)
+-            camadas.append(Camada(img, fator))
+-
+-        return cls(
+-            nome,
+-            cor_ceu,
+-            camadas,
+-            config.get("tint", _NEUTRO_MULT),
+-            config.get("luz", _NEUTRO_ADD),
+-        )
+-
+-    @staticmethod
+-    def _achatar(img, cor_ceu, altura):
+-        """Compõe a camada sobre o céu e devolve uma Surface 100% opaca."""
+-        base = pygame.Surface((img.get_width(), altura))
+-        base.fill(cor_ceu)
+-        base.blit(img, (0, 0))
+-        return base.convert()
+-
+-    @staticmethod
+-    def _carregar(arquivo, altura):
+-        """
+-        Lê o PNG e escala pela ALTURA preservando a proporção — a largura não
+-        importa, a camada é repetida no X de qualquer jeito. None se faltar.
+-        """
+-        if not arquivo:
+-            return None
+-        try:
+-            img = carregar_imagem("backgrounds", arquivo)
+-        except (FileNotFoundError, pygame.error):
+-            return None
+-        larg = max(1, img.get_width() * altura // max(1, img.get_height()))
+-        return pygame.transform.scale(img, (larg, altura))
+-
+-    def desenhar(self, surface, camera_x):
+-        if not self.camadas:
+-            surface.fill(self.cor_ceu)
+-            return
+-        # Sem fill(): a camada 0 é opaca e cobre a tela inteira (ver _achatar).
+-        for camada in self.camadas:
+-            camada.desenhar(surface, camera_x)
+-
+-
+-class GerenciadorAmbientes:
+-    """
+-    Decide qual ambiente vale para cada faixa do mapa e faz a mistura.
+-
+-    zonas: lista de (limite, nome), onde `limite` é a linha (eixo "y") ou a
+-    coluna (eixo "x") em que a zona começa. A zona vale dali até o início da
+-    próxima; a dissolução fica CENTRADA na fronteira, com metade da largura
+-    de transição de cada lado.
+-    """
+-
+-    def __init__(
+-        self,
+-        largura,
+-        altura,
+-        definicoes=None,
+-        zonas=None,
+-        transicao_tiles=None,
+-        eixo=None,
+-        suavizacao=None,
+-        modo_discreto=None,
+-    ):
+-        definicoes = definicoes if definicoes is not None else constants.AMBIENTES
+-        zonas = zonas if zonas is not None else constants.ZONAS_AMBIENTE
+-
+-        self.largura = largura
+-        self.altura = altura
+-        self.eixo = (eixo or getattr(constants, "EIXO_AMBIENTE", "y")).lower()
+-        self.ambientes = {
+-            nome: Ambiente.criar(nome, cfg, largura, altura)
+-            for nome, cfg in definicoes.items()
+-        }
+-
+-        # Modo discreto (padrão): o ambiente só troca via forcar(), chamado
+-        # por main.py dentro do callback de uma Transicao (tela 100% preta).
+-        # Sem isso, GerenciadorAmbientes cairia de volta no comportamento
+-        # antigo — reler a POSIÇÃO do player a cada frame e dissolver
+-        # sozinho — que é exatamente o que a feature de passagens tirou.
+-        if modo_discreto is None:
+-            modo_discreto = getattr(constants, "AMBIENTE_MODO_DISCRETO", True)
+-        self.modo_discreto = modo_discreto
+-
+-        # Ordena pelo limite e descarta zonas que apontem para ambiente ausente
+-        self.zonas = sorted([(lim, nome) for lim, nome in zonas if nome in self.ambientes])
+-        if not self.zonas:
+-            # Nunca deixa o jogo sem fundo: cai no primeiro ambiente definido.
+-            self.zonas = [(0, next(iter(self.ambientes)))]
+-
+-        if transicao_tiles is None:
+-            transicao_tiles = getattr(constants, "TRANSICAO_TILES", 4)
+-        self.transicao = max(1, transicao_tiles * constants.TILE_SIZE)
+-
+-        if suavizacao is None:
+-            suavizacao = getattr(constants, "SUAVIZACAO_AMBIENTE", 0.05)
+-        self.suavizacao = min(1.0, max(0.001, suavizacao))
+-
+-        # Buffer reaproveitado do ambiente que entra durante a dissolução.
+-        # convert() e não convert_alpha: o ambiente preenche tudo, e set_alpha
+-        # em Surface opaca é o caminho rápido do pygame. Só é usado no modo
+-        # contínuo — no discreto não existe dissolução, então nunca é lido.
+-        self._buffer = pygame.Surface((largura, altura)).convert()
+-
+-        self._ref = None          # referência suavizada (só modo contínuo)
+-        self._saindo = self.zonas[0][1]
+-        self._entrando = None
+-        self.nome_atual = self.zonas[0][1]
+-        self.mistura = 0.0        # 0..1, quanto do próximo ambiente está visível
+-
+-    def forcar(self, nome):
+-        """
+-        Troca o ambiente atual IMEDIATAMENTE, sem dissolução — usado só no
+-        modo discreto, chamado enquanto a tela está 100% preta (ver
+-        src/transicao.py). Se `nome` não existir em AMBIENTES, não faz nada
+-        (fica no ambiente anterior) em vez de derrubar o jogo.
+-        """
+-        if nome not in self.ambientes:
+-            return
+-        self._saindo = nome
+-        self._entrando = None
+-        self.mistura = 0.0
+-        self.nome_atual = nome
+-
+-    def reiniciar(self, posicao=None):
+-        """
+-        Zera o filtro. Chamado ao (re)carregar a fase: sem isso o jogador
+-        renasce no spawn e o background leva um segundo escorregando de volta,
+-        porque a referência suavizada ainda estava onde ele morreu.
+-        """
+-        self._ref = None if posicao is None else float(posicao)
+-
+-    def _resolver(self, pos):
+-        """Devolve (ambiente_saindo, ambiente_entrando_ou_None, t)."""
+-        meia = self.transicao * 0.5
+-        tile = constants.TILE_SIZE
+-
+-        idx = 0
+-        for i, (limite, _nome) in enumerate(self.zonas):
+-            if pos >= limite * tile:
+-                idx = i
+-
+-        atual = self.zonas[idx][1]
+-
+-        # Ainda dentro da faixa de entrada desta zona (fronteira anterior)
+-        if idx > 0:
+-            limite = self.zonas[idx][0] * tile
+-            if pos < limite + meia:
+-                t = (pos - (limite - meia)) / self.transicao
+-                return self.zonas[idx - 1][1], atual, min(1.0, max(0.0, t))
+-
+-        # Já entrando na faixa de saída (fronteira seguinte)
+-        if idx + 1 < len(self.zonas):
+-            limite = self.zonas[idx + 1][0] * tile
+-            if pos > limite - meia:
+-                t = (pos - (limite - meia)) / self.transicao
+-                return atual, self.zonas[idx + 1][1], min(1.0, max(0.0, t))
+-
+-        return atual, None, 0.0
+-
+-    def _atualizar_referencia(self, referencia, camera_x, camera_y):
+-        if referencia is None:
+-            # Sem player (menu, tela de morte): usa o centro da tela.
+-            base = camera_y if self.eixo == "y" else camera_x
+-            metade = self.altura if self.eixo == "y" else self.largura
+-            referencia = base + metade * 0.5
+-
+-        if self._ref is None:
+-            self._ref = float(referencia)   # primeiro frame: sem deslizar
+-        else:
+-            self._ref += (referencia - self._ref) * self.suavizacao
+-        return self._ref
+-
+-    def desenhar(self, surface, camera_x, referencia=None, camera_y=0):
+-        """
+-        Desenha o fundo do frame.
+-
+-        No modo discreto (padrão): ignora `referencia` por completo e
+-        desenha só `self.nome_atual`, sem dissolução — o ambiente muda
+-        exclusivamente via `forcar()`.
+-
+-        No modo contínuo (AMBIENTE_MODO_DISCRETO = False): `referencia` é a
+-        posição do jogador ao longo do eixo configurado — com
+-        EIXO_AMBIENTE = "y", passe player.rect.centery. Usar o jogador e não
+-        a câmera importa nas bordas do mapa, onde a câmera trava e a
+-        transição congelaria pela metade.
+-        """
+-        if self.modo_discreto:
+-            self.ambientes[self.nome_atual].desenhar(surface, camera_x)
+-            return
+-
+-        pos = self._atualizar_referencia(referencia, camera_x, camera_y)
+-
+-        saindo, entrando, t = self._resolver(pos)
+-        self._saindo, self._entrando, self.mistura = saindo, entrando, t
+-        self.nome_atual = entrando if (entrando and t >= 0.5) else saindo
+-
+-        self.ambientes[saindo].desenhar(surface, camera_x)
+-
+-        if entrando is None or t <= 0.0:
+-            return
+-        if t >= 1.0:
+-            # Dissolução completa: desenha direto, sem pagar o buffer.
+-            self.ambientes[entrando].desenhar(surface, camera_x)
+-            return
+-
+-        self.ambientes[entrando].desenhar(self._buffer, camera_x)
+-        self._buffer.set_alpha(int(t * 255))
+-        surface.blit(self._buffer, (0, 0))
+-
+-    # ── Atmosfera ─────────────────────────────────────────────────────────────
+-    @staticmethod
+-    def _misturar(cor_a, cor_b, t):
+-        return (
+-            int(cor_a[0] + (cor_b[0] - cor_a[0]) * t),
+-            int(cor_a[1] + (cor_b[1] - cor_a[1]) * t),
+-            int(cor_a[2] + (cor_b[2] - cor_a[2]) * t),
+-        )
+-
+-    def desenhar_atmosfera(self, surface, camera_x=0, camera_y=0):
+-        """
+-        Tonalidade, luz e partículas do ambiente atual.
+-
+-        Chamada DEPOIS do mundo, dos inimigos e do jogador, mas ANTES da HUD:
+-        a intenção é escurecer a cena, não a barra de vida. Tinta e luz são
+-        blits de uma superfície de cor sólida em cache (ver _aplicar_cor).
+-        """
+-        a = self.ambientes[self._saindo]
+-        b = self.ambientes[self._entrando] if self._entrando else a
+-        t = self.mistura if self._entrando else 0.0
+-
+-        tint = self._misturar(a.tint, b.tint, t)
+-        if tint != _NEUTRO_MULT:
+-            _aplicar_cor(surface, tint, pygame.BLEND_RGB_MULT)
+-
+-        luz = self._misturar(a.luz, b.luz, t)
+-        if luz != _NEUTRO_ADD:
+-            _aplicar_cor(surface, luz, pygame.BLEND_RGB_ADD)
++"""
++Ambientes dinâmicos — troca de background por ALTURA, dentro da mesma fase.
++
++Ideia central
++-------------
++O nível continua sendo um só (mesmo CSV, mesmo player, mesma progressão).
++O que muda é a ATMOSFERA: conforme o jogador sobe ou desce, o conjunto de
++camadas de paralaxe ao fundo é trocado — copas das árvores em cima, floresta
++no meio, caverna embaixo — dissolvendo um ambiente no outro.
++
++    y menor  ↑   copas das árvores
++                 floresta          (zona central, ambiente principal)
++    y maior  ↓   caverna
++
++Em pygame o Y cresce para BAIXO, então a lista de zonas em ordem crescente
++já sai naturalmente na ordem copas → floresta → caverna.
++
++Como o crossfade funciona
++-------------------------
++Cada ambiente sabe se desenhar sozinho numa Surface. Numa fronteira:
++
++    1. o ambiente que SAI é desenhado direto na tela (alpha cheio);
++    2. o ambiente que ENTRA é desenhado num buffer reaproveitado;
++    3. o buffer recebe set_alpha(t * 255) e é blitado por cima.
++
++Como a camada de fundo de todo ambiente é opaca, o buffer é 100% opaco e o
++set_alpha se comporta como uma dissolução linear exata. Nenhuma Surface é
++alocada por frame: o buffer nasce uma vez só.
++
++O `t` vem da POSIÇÃO, não de um cronômetro. É isso que dá a reversibilidade
++pedida: subir desfaz a mistura na mesma proporção que descer fez. Não depende
++de FPS e nunca fica presa no meio se o jogo travar.
++
++Por que existe suavização
++-------------------------
++No eixo X a posição do jogador é monótona e lenta. No eixo Y não: um pulo
++sobe e desce 3 tiles em meio segundo. Ler a altura crua faria o background
++piscar a cada pulo. Por isso a referência passa por um filtro passa-baixa —
++um pulo é rápido demais para mover o ambiente, uma descida sustentada não é.
++Ajuste em constants.SUAVIZACAO_AMBIENTE.
++
++Assets ausentes
++---------------
++Camadas sem PNG correspondente em assets/images/backgrounds são desenhadas
++por geração procedural (somas de senos com frequência inteira, portanto sem
++costura no tiling). Quando a arte real chegar, basta soltar o arquivo na
++pasta: o carregamento por disco tem prioridade e o procedural some sozinho.
++"""
++
++import math
++
++import pygame
++
++import constants
++from utils import carregar_imagem
++
++# Amostragem das silhuetas procedurais. 6px já sai lisa depois de escalada.
++_PASSO = 6
++
++_NEUTRO_MULT = (255, 255, 255)
++_NEUTRO_ADD = (0, 0, 0)
++
++# Superfícies de cor sólida para a tonalidade/luz, uma por (tamanho, cor).
++# blit com BLEND_RGB_MULT/ADD dá o MESMO resultado pixel a pixel que
++# fill(..., BLEND_MULT/ADD), mas usa o caminho SIMD do pygame: medido em
++# 960x600, 4,8 ms -> 0,2 ms por camada. Nas copas (tinta + luz) o fill era
++# ~60% do tempo do quadro.
++_cache_cor = {}
++
++
++def _aplicar_cor(surface, cor, modo):
++    chave = (surface.get_size(), surface.get_bitsize(), cor)
++    sup = _cache_cor.get(chave)
++    if sup is None:
++        if len(_cache_cor) > 16:   # dissolução contínua gera cores novas
++            _cache_cor.clear()
++        sup = pygame.Surface(surface.get_size(), 0, surface)
++        sup.fill(cor)
++        _cache_cor[chave] = sup
++    surface.blit(sup, (0, 0), special_flags=modo)
++
++
++# ── Geração procedural (usada só quando o PNG não existe) ─────────────────────
++def _perfil(largura, base, harmonicos, afiado=False):
++    """
++    Linha do horizonte de uma silhueta, como soma de senos.
++
++    As frequências são INTEIRAS em relação à largura, então f(0) == f(L) e a
++    imagem repete lado a lado sem emenda. `afiado=True` aplica abs() na onda,
++    trocando colinas por picos — é o que dá cara de estalactite.
++    """
++    pontos = []
++    for x in range(0, largura + _PASSO, _PASSO):
++        v = 0.0
++        for freq, amp, fase in harmonicos:
++            v += amp * math.sin(2 * math.pi * freq * x / largura + fase)
++        if afiado:
++            v = abs(v)
++        pontos.append((x, base + v))
++    return pontos
++
++
++def _silhueta_inferior(surface, largura, altura, base, harmonicos, cor, afiado=False):
++    """Massa sólida que sobe do rodapé até a linha do perfil."""
++    pontos = _perfil(largura, base, harmonicos, afiado)
++    pygame.draw.polygon(surface, cor, pontos + [(largura, altura), (0, altura)])
++
++
++def _silhueta_superior(surface, largura, base, harmonicos, cor, afiado=False):
++    """Massa sólida que desce do topo até a linha do perfil."""
++    pontos = _perfil(largura, base, harmonicos, afiado)
++    pygame.draw.polygon(surface, cor, pontos + [(largura, 0), (0, 0)])
++
++
++def _pinheiros(surface, largura, altura, base, cor, espacamento, escala):
++    """
++    Coníferas sobre a linha do terreno. Todas ficam inteiramente dentro da
++    imagem (a primeira em espacamento/2), então nenhuma é cortada pela emenda.
++    """
++    x = espacamento // 2
++    i = 0
++    while x < largura - espacamento // 2:
++        # Alturas variadas mas determinísticas: idêntico em toda máquina.
++        h = escala * (0.75 + 0.25 * math.sin(i * 2.399))
++        larg = h * 0.45
++        pygame.draw.polygon(
++            surface,
++            cor,
++            [
++                (x, base - h),
++                (x - larg / 2, base + altura * 0.05),
++                (x + larg / 2, base + altura * 0.05),
++            ],
++        )
++        x += espacamento
++        i += 1
++
++
++def _folhagem(surface, largura, cor, base, raio, espacamento):
++    """Bolhas de copa penduradas no topo, para o ambiente 'copas'."""
++    x = espacamento // 2
++    i = 0
++    while x < largura - espacamento // 2:
++        r = raio * (0.7 + 0.3 * math.sin(i * 1.713))
++        y = base + raio * 0.4 * math.sin(i * 0.941)
++        pygame.draw.circle(surface, cor, (int(x), int(y)), int(r))
++        x += espacamento
++        i += 1
++
++
++def _gerar_camada(estilo, indice, largura, altura):
++    """
++    Uma camada de paralaxe desenhada na mão. `indice` 0 é o fundo (mais claro
++    e distante); índices maiores são frontais (mais escuros, mais movimento).
++    """
++    surf = pygame.Surface((largura, altura), pygame.SRCALPHA)
++    fundo = indice == 0
++
++    if estilo == "caverna":
++        cor = (58, 48, 66) if fundo else (28, 22, 34)
++        # Teto e chão de rocha com picos apontando para dentro. Amplitudes
++        # generosas de propósito: com picos tímidos sobrava uma faixa lisa no
++        # meio e a caverna virava um retângulo preto.
++        _silhueta_superior(
++            surf,
++            largura,
++            altura * (0.20 if fundo else 0.10),
++            [(3, altura * 0.26, 0.0), (7, altura * 0.11, 1.9), (13, altura * 0.05, 4.1)],
++            cor,
++            afiado=True,
++        )
++        _silhueta_inferior(
++            surf,
++            largura,
++            altura,
++            altura * (0.74 if fundo else 0.86),
++            [(4, -altura * 0.24, 1.2), (9, -altura * 0.10, 3.3), (15, -altura * 0.04, 0.7)],
++            cor,
++            afiado=True,
++        )
++
++    elif estilo == "copas":
++        cor = (46, 82, 44) if fundo else (18, 42, 22)
++        _silhueta_superior(
++            surf,
++            largura,
++            altura * (0.46 if fundo else 0.30),
++            [(2, altura * 0.12, 0.6), (5, altura * 0.06, 2.4), (11, altura * 0.025, 5.0)],
++            cor,
++        )
++        _folhagem(surf, largura, cor, altura * (0.48 if fundo else 0.32), altura * 0.11, 130)
++        # Galhos descendo da copa. Espessos: com 5px viravam gravetos no ar.
++        passo = 190 if fundo else 150
++        x = passo // 2
++        while x < largura - passo // 2:
++            pygame.draw.line(
++                surf, cor, (x, altura * 0.25), (x, altura * (0.68 if fundo else 0.86)), 11
++            )
++            x += passo
++        # Copa distante no rodapé: sem ela sobrava uma faixa chapada do céu.
++        if fundo:
++            _silhueta_inferior(
++                surf,
++                largura,
++                altura,
++                altura * 0.86,
++                [(3, -altura * 0.06, 1.4), (8, -altura * 0.025, 3.7)],
++                (74, 108, 72),
++            )
++
++    else:  # "floresta" e qualquer estilo desconhecido
++        cor = (40, 70, 50) if fundo else (18, 34, 26)
++        base = altura * (0.58 if fundo else 0.74)
++        _silhueta_inferior(
++            surf,
++            largura,
++            altura,
++            base,
++            [(2, -altura * 0.07, 0.3), (5, -altura * 0.035, 2.1), (11, -altura * 0.015, 4.4)],
++            cor,
++        )
++        _pinheiros(
++            surf,
++            largura,
++            altura,
++            base,
++            cor,
++            espacamento=150 if fundo else 110,
++            escala=altura * (0.20 if fundo else 0.34),
++        )
++
++    return surf.convert_alpha()
++
++
++# ── Partículas atmosféricas ───────────────────────────────────────────────────
++class Camada:
++    """Uma faixa de paralaxe: imagem repetida no eixo X a uma dada velocidade."""
++
++    __slots__ = ("img", "fator", "largura")
++
++    def __init__(self, img, fator):
++        self.img = img
++        self.fator = fator
++        self.largura = img.get_width()
++
++    def desenhar(self, surface, camera_x):
++        larg = self.largura
++        limite = surface.get_width()
++        # Offset sempre em [0, larg): o loop começa uma imagem à esquerda
++        # para não abrir buraco na borda.
++        x = (int(-camera_x * self.fator) % larg) - larg
++        while x < limite:
++            surface.blit(self.img, (x, 0))
++            x += larg
++
++
++class Ambiente:
++    """Camadas + céu + atmosfera. Sabe se desenhar por inteiro."""
++
++    def __init__(self, nome, cor_ceu, camadas, tint, luz, vagalumes=0):
++        self.vagalumes = vagalumes  # partículas de luz flutuando (0 = nenhuma)
++        self.nome = nome
++        self.cor_ceu = cor_ceu
++        self.camadas = camadas
++        self.tint = tint            # multiplicativo, (255,255,255) = neutro
++        self.luz = luz              # aditivo, (0,0,0) = neutro
++
++    @classmethod
++    def criar(cls, nome, config, largura, altura):
++        estilo = config.get("estilo", nome)
++        cor_ceu = config.get("cor_ceu", (0, 0, 0))
++        camadas = []
++
++        for indice, (arquivo, fator) in enumerate(config.get("camadas", [])):
++            img = cls._carregar(arquivo, altura)
++            if img is None:
++                # Sem arte ainda: silhueta procedural com largura confortável
++                # (nunca menor que a tela, para poucos blits por frame).
++                img = _gerar_camada(estilo, indice, max(1024, largura), altura)
++            if indice == 0:
++                # A camada do fundo é achatada contra o céu e perde o alpha.
++                # Duas economias medidas: o fill() da tela some (esta camada
++                # já cobre tudo) e o blit vira cópia crua, não mistura.
++                img = cls._achatar(img, cor_ceu, altura)
++            camadas.append(Camada(img, fator))
++
++        return cls(
++            nome,
++            cor_ceu,
++            camadas,
++            config.get("tint", _NEUTRO_MULT),
++            config.get("luz", _NEUTRO_ADD),
++            config.get("vagalumes", 0),
++        )
++
++    @staticmethod
++    def _achatar(img, cor_ceu, altura):
++        """Compõe a camada sobre o céu e devolve uma Surface 100% opaca."""
++        base = pygame.Surface((img.get_width(), altura))
++        base.fill(cor_ceu)
++        base.blit(img, (0, 0))
++        return base.convert()
++
++    @staticmethod
++    def _carregar(arquivo, altura):
++        """
++        Lê o PNG e escala pela ALTURA preservando a proporção — a largura não
++        importa, a camada é repetida no X de qualquer jeito. None se faltar.
++        """
++        if not arquivo:
++            return None
++        try:
++            img = carregar_imagem("backgrounds", arquivo)
++        except (FileNotFoundError, pygame.error):
++            return None
++        larg = max(1, img.get_width() * altura // max(1, img.get_height()))
++        return pygame.transform.scale(img, (larg, altura))
++
++    def desenhar(self, surface, camera_x):
++        if not self.camadas:
++            surface.fill(self.cor_ceu)
++            return
++        # Sem fill(): a camada 0 é opaca e cobre a tela inteira (ver _achatar).
++        for camada in self.camadas:
++            camada.desenhar(surface, camera_x)
++
++
++class GerenciadorAmbientes:
++    """
++    Decide qual ambiente vale para cada faixa do mapa e faz a mistura.
++
++    zonas: lista de (limite, nome), onde `limite` é a linha (eixo "y") ou a
++    coluna (eixo "x") em que a zona começa. A zona vale dali até o início da
++    próxima; a dissolução fica CENTRADA na fronteira, com metade da largura
++    de transição de cada lado.
++    """
++
++    def __init__(
++        self,
++        largura,
++        altura,
++        definicoes=None,
++        zonas=None,
++        transicao_tiles=None,
++        eixo=None,
++        suavizacao=None,
++        modo_discreto=None,
++    ):
++        definicoes = definicoes if definicoes is not None else constants.AMBIENTES
++        zonas = zonas if zonas is not None else constants.ZONAS_AMBIENTE
++
++        self.largura = largura
++        self.altura = altura
++        self.eixo = (eixo or getattr(constants, "EIXO_AMBIENTE", "y")).lower()
++        self.ambientes = {
++            nome: Ambiente.criar(nome, cfg, largura, altura)
++            for nome, cfg in definicoes.items()
++        }
++
++        # Modo discreto (padrão): o ambiente só troca via forcar(), chamado
++        # por main.py dentro do callback de uma Transicao (tela 100% preta).
++        # Sem isso, GerenciadorAmbientes cairia de volta no comportamento
++        # antigo — reler a POSIÇÃO do player a cada frame e dissolver
++        # sozinho — que é exatamente o que a feature de passagens tirou.
++        if modo_discreto is None:
++            modo_discreto = getattr(constants, "AMBIENTE_MODO_DISCRETO", True)
++        self.modo_discreto = modo_discreto
++
++        # Ordena pelo limite e descarta zonas que apontem para ambiente ausente
++        self.zonas = sorted([(lim, nome) for lim, nome in zonas if nome in self.ambientes])
++        if not self.zonas:
++            # Nunca deixa o jogo sem fundo: cai no primeiro ambiente definido.
++            self.zonas = [(0, next(iter(self.ambientes)))]
++
++        if transicao_tiles is None:
++            transicao_tiles = getattr(constants, "TRANSICAO_TILES", 4)
++        self.transicao = max(1, transicao_tiles * constants.TILE_SIZE)
++
++        if suavizacao is None:
++            suavizacao = getattr(constants, "SUAVIZACAO_AMBIENTE", 0.05)
++        self.suavizacao = min(1.0, max(0.001, suavizacao))
++
++        # Buffer reaproveitado do ambiente que entra durante a dissolução.
++        # convert() e não convert_alpha: o ambiente preenche tudo, e set_alpha
++        # em Surface opaca é o caminho rápido do pygame. Só é usado no modo
++        # contínuo — no discreto não existe dissolução, então nunca é lido.
++        self._buffer = pygame.Surface((largura, altura)).convert()
++
++        self._ref = None          # referência suavizada (só modo contínuo)
++        self._saindo = self.zonas[0][1]
++        self._entrando = None
++        self.nome_atual = self.zonas[0][1]
++        self.mistura = 0.0        # 0..1, quanto do próximo ambiente está visível
++
++    def forcar(self, nome):
++        """
++        Troca o ambiente atual IMEDIATAMENTE, sem dissolução — usado só no
++        modo discreto, chamado enquanto a tela está 100% preta (ver
++        src/transicao.py). Se `nome` não existir em AMBIENTES, não faz nada
++        (fica no ambiente anterior) em vez de derrubar o jogo.
++        """
++        if nome not in self.ambientes:
++            return
++        self._saindo = nome
++        self._entrando = None
++        self.mistura = 0.0
++        self.nome_atual = nome
++
++    def reiniciar(self, posicao=None):
++        """
++        Zera o filtro. Chamado ao (re)carregar a fase: sem isso o jogador
++        renasce no spawn e o background leva um segundo escorregando de volta,
++        porque a referência suavizada ainda estava onde ele morreu.
++        """
++        self._ref = None if posicao is None else float(posicao)
++
++    def _resolver(self, pos):
++        """Devolve (ambiente_saindo, ambiente_entrando_ou_None, t)."""
++        meia = self.transicao * 0.5
++        tile = constants.TILE_SIZE
++
++        idx = 0
++        for i, (limite, _nome) in enumerate(self.zonas):
++            if pos >= limite * tile:
++                idx = i
++
++        atual = self.zonas[idx][1]
++
++        # Ainda dentro da faixa de entrada desta zona (fronteira anterior)
++        if idx > 0:
++            limite = self.zonas[idx][0] * tile
++            if pos < limite + meia:
++                t = (pos - (limite - meia)) / self.transicao
++                return self.zonas[idx - 1][1], atual, min(1.0, max(0.0, t))
++
++        # Já entrando na faixa de saída (fronteira seguinte)
++        if idx + 1 < len(self.zonas):
++            limite = self.zonas[idx + 1][0] * tile
++            if pos > limite - meia:
++                t = (pos - (limite - meia)) / self.transicao
++                return atual, self.zonas[idx + 1][1], min(1.0, max(0.0, t))
++
++        return atual, None, 0.0
++
++    def _atualizar_referencia(self, referencia, camera_x, camera_y):
++        if referencia is None:
++            # Sem player (menu, tela de morte): usa o centro da tela.
++            base = camera_y if self.eixo == "y" else camera_x
++            metade = self.altura if self.eixo == "y" else self.largura
++            referencia = base + metade * 0.5
++
++        if self._ref is None:
++            self._ref = float(referencia)   # primeiro frame: sem deslizar
++        else:
++            self._ref += (referencia - self._ref) * self.suavizacao
++        return self._ref
++
++    def desenhar(self, surface, camera_x, referencia=None, camera_y=0):
++        """
++        Desenha o fundo do frame.
++
++        No modo discreto (padrão): ignora `referencia` por completo e
++        desenha só `self.nome_atual`, sem dissolução — o ambiente muda
++        exclusivamente via `forcar()`.
++
++        No modo contínuo (AMBIENTE_MODO_DISCRETO = False): `referencia` é a
++        posição do jogador ao longo do eixo configurado — com
++        EIXO_AMBIENTE = "y", passe player.rect.centery. Usar o jogador e não
++        a câmera importa nas bordas do mapa, onde a câmera trava e a
++        transição congelaria pela metade.
++        """
++        if self.modo_discreto:
++            self.ambientes[self.nome_atual].desenhar(surface, camera_x)
++            return
++
++        pos = self._atualizar_referencia(referencia, camera_x, camera_y)
++
++        saindo, entrando, t = self._resolver(pos)
++        self._saindo, self._entrando, self.mistura = saindo, entrando, t
++        self.nome_atual = entrando if (entrando and t >= 0.5) else saindo
++
++        self.ambientes[saindo].desenhar(surface, camera_x)
++
++        if entrando is None or t <= 0.0:
++            return
++        if t >= 1.0:
++            # Dissolução completa: desenha direto, sem pagar o buffer.
++            self.ambientes[entrando].desenhar(surface, camera_x)
++            return
++
++        self.ambientes[entrando].desenhar(self._buffer, camera_x)
++        self._buffer.set_alpha(int(t * 255))
++        surface.blit(self._buffer, (0, 0))
++
++    # ── Atmosfera ─────────────────────────────────────────────────────────────
++    @staticmethod
++    def _misturar(cor_a, cor_b, t):
++        return (
++            int(cor_a[0] + (cor_b[0] - cor_a[0]) * t),
++            int(cor_a[1] + (cor_b[1] - cor_a[1]) * t),
++            int(cor_a[2] + (cor_b[2] - cor_a[2]) * t),
++        )
++
++    def desenhar_atmosfera(self, surface, camera_x=0, camera_y=0):
++        """
++        Tonalidade, luz e partículas do ambiente atual.
++
++        Chamada DEPOIS do mundo, dos inimigos e do jogador, mas ANTES da HUD:
++        a intenção é escurecer a cena, não a barra de vida. Tinta e luz são
++        blits de uma superfície de cor sólida em cache (ver _aplicar_cor).
++        """
++        a = self.ambientes[self._saindo]
++        b = self.ambientes[self._entrando] if self._entrando else a
++        t = self.mistura if self._entrando else 0.0
++
++        tint = self._misturar(a.tint, b.tint, t)
++        if tint != _NEUTRO_MULT:
++            _aplicar_cor(surface, tint, pygame.BLEND_RGB_MULT)
++
++        luz = self._misturar(a.luz, b.luz, t)
++        if luz != _NEUTRO_ADD:
++            _aplicar_cor(surface, luz, pygame.BLEND_RGB_ADD)
++        if a.vagalumes:
++            _desenhar_vagalumes(surface, a.vagalumes, camera_x)
++
++
++_cache_brilho = {}
++
++
++def _desenhar_vagalumes(surface, n, camera_x):
++    """
++    Vaga-lumes: pontos de luz que flutuam devagar e piscam. Ficam na metade
++    de cima da tela (não competem com projéteis no chão) e acompanham a
++    câmera com paralaxe leve. Posições determinísticas por índice.
++    """
++    import math
++    w, h = surface.get_size()
++    agora = pygame.time.get_ticks() / 1000.0
++    if "b" not in _cache_brilho:
++        b = pygame.Surface((14, 14), pygame.SRCALPHA)
++        pygame.draw.circle(b, (190, 240, 140, 50), (7, 7), 7)
++        pygame.draw.circle(b, (220, 255, 170, 120), (7, 7), 4)
++        pygame.draw.rect(b, (250, 255, 210, 255), (6, 6, 2, 2))
++        _cache_brilho["b"] = b
++    brilho = _cache_brilho["b"]
++    for i in range(n):
++        fx = (i * 0.618034) % 1.0
++        fy = (i * 0.414214) % 1.0
++        x = (fx * (w + 200) - camera_x * 0.6 + 30 * math.sin(agora * 0.4 + i)) % (w + 200) - 100
++        y = h * (0.12 + 0.45 * fy) + 18 * math.sin(agora * 0.7 + i * 1.7)
++        pisca = 0.5 + 0.5 * math.sin(agora * 2.1 + i * 2.3)
++        if pisca > 0.25:
++            brilho.set_alpha(int(255 * pisca))
++            surface.blit(brilho, (int(x) - 7, int(y) - 7))
+diff --git a/src/enemies/boss.py b/src/enemies/boss.py
+index 06f65ea..bd8b3f6 100644
+--- a/src/enemies/boss.py
++++ b/src/enemies/boss.py
+@@ -32,9 +32,11 @@ COMO A LUTA FUNCIONA (o que o jogador vê)
+               rápidos.
+   REPOSIÇÃO — entre arremessos o Gorila SALTA para outro ponto da arena (o
+               pouso aparece marcado no chão; nunca perto do jogador).
+-  PUNIÇÃO   — atordoado, ele derruba um minério do lado do jogador: pegue-o
+-              e ele volta voando na cabeça do Gorila (dano extra). Atordoado,
+-              o Gorila não machuca por contato.
++  PUNIÇÃO   — (opcional, constants.GORILA_DANO_BONUS > 0) atordoado, ele
++              derruba um minério do lado do jogador: pegue-o e ele volta
++              voando na cabeça do Gorila (dano extra). Desligada por padrão:
++              a vitória exige as 8 perguntas. Atordoado, o Gorila não
++              machuca por contato.
+   TROCA DE FASE — faixa de anúncio na tela; ao acordar, um rugido (sem
+               ataque) antes de voltar ao combate.
+   DERROTA   — com 0 de vida: animação de queda; ao terminar o boss fica
+@@ -461,6 +463,8 @@ class Gorila(Enemy):
+ 
+     def _derrubar_minerio(self):
+         """Janela de punição: um minério cai do lado do jogador (se houver chão ali)."""
++        if constants.GORILA_DANO_BONUS <= 0:
++            return          # desligada: a luta exige todas as perguntas
+         rect = getattr(self, "rect", None)
+         chao = getattr(self, "chao_y", None)
+         if rect is None or chao is None:
+diff --git a/testes/teste_boss_v1.py b/testes/teste_boss_v1.py
+index 37b3d68..9ead919 100644
+--- a/testes/teste_boss_v1.py
++++ b/testes/teste_boss_v1.py
+@@ -12,8 +12,10 @@ Cobre:
+     jogador; 40 saltos com o jogador em posições sorteadas;
+   * CHUVA DE BANANAS (fase 3): aviso, cachos espaçados (sempre há vão),
+     sombra no ponto real de impacto com antecedência, dano uma vez só;
+-  * JANELA DE PUNIÇÃO: minério cai do lado do jogador; atordoado não fere
+-    por contato; pegar o minério tira vida extra; some se não for pego;
++  * JANELA DE PUNIÇÃO: DESLIGADA por padrão (GORILA_DANO_BONUS = 0, a luta
++    exige 8 perguntas) — nenhum minério cai; atordoado não fere por contato.
++    Ligada temporariamente: minério cai do lado do jogador, pegar tira vida
++    extra, some se não for pego;
+   * HUD: contador de minérios, anúncio e balão desenhados sem erro;
+   * luta completa com um bot que aproveita a janela de punição.
+ 
+@@ -225,7 +227,34 @@ def _minerio_no_player():
+     assert esperar(lambda: b.estado == "ATORDOADO", 600), "nao atordoou"
+ 
+ 
++def teste_padrao_sem_bonus():
++    """Padrão da equipe: nenhum minério cai; atordoado não fere por contato."""
++    assert constants.GORILA_DANO_BONUS == 0, "padrao deve exigir as 8 perguntas"
++    b = M.boss
++    b.vida = b.VIDA_MAX
++    b.anuncio = None
++    b.estado, b.pancada, b.salto, b.chuva, b.preparando = "COMBATE", None, None, None, None
++    b.cachos = []
++    colocar_player(b.rect.centerx - 6 * T)
++    _minerio_no_player()
++    assert b.minerio_caido is None, "minerio caiu com o bonus desligado"
++    M.player.invulnerable = False
++    vida = M.player.player_health
++    M.player.rect.center = b.rect.center
++    assert not b.check_player_collision(M.player) and M.player.player_health == vida
++    assert esperar(lambda: b.estado == "COMBATE", constants.GORILA_ATORDOADO_MS // DT + 20)
++    ok("padrao: sem minerio bonus (8 perguntas obrigatorias); atordoado nao fere por contato")
++
++
+ def teste_janela_de_punicao():
++    constants.GORILA_DANO_BONUS = 1          # recurso opcional: ligado só neste teste
++    try:
++        _janela_de_punicao()
++    finally:
++        constants.GORILA_DANO_BONUS = 0
++
++
++def _janela_de_punicao():
+     b = M.boss
+     b.vida = b.VIDA_MAX
+     b.anuncio = None
+@@ -258,7 +287,7 @@ def teste_janela_de_punicao():
+     assert b.minerio_caido is not None
+     assert esperar(lambda: b.estado == "COMBATE", constants.GORILA_ATORDOADO_MS // DT + 20)
+     assert b.minerio_caido is None, "minerio caido nao sumiu ao acordar"
+-    ok("janela de punicao: minerio cai do lado do jogador, atordoado nao fere, "
++    ok("janela de punicao (opcional, ligada no teste): minerio cai do lado do jogador, "
+        "pegar tira 1 vida extra, some se nao for pego")
+ 
+ 
+@@ -297,10 +326,10 @@ def teste_luta_completa_com_punicao():
+     assert M.estado_jogo == "VITORIA", "luta nao terminou"
+     duracao = (_agora[0] - inicio) / 1000
+     assert fases_vistas >= {1, 2, 3}, fases_vistas
+-    assert perguntas + bonus[0] * constants.GORILA_DANO_BONUS == Gorila.VIDA_MAX, (perguntas, bonus[0])
+-    assert perguntas >= Gorila.VIDA_MAX // 2, "vitoria sem perguntas suficientes"
+-    ok(f"luta completa com punicao: VITORIA em {duracao:.0f} s de jogo; {perguntas} perguntas "
+-       f"+ {bonus[0]} minerios caidos devolvidos; fases {sorted(fases_vistas)}")
++    assert bonus[0] == 0, "minerio bonus apareceu com a janela desligada"
++    assert perguntas == Gorila.VIDA_MAX == 8, (perguntas, bonus[0])
++    ok(f"luta completa: VITORIA em {duracao:.0f} s de jogo exigindo as {perguntas} perguntas; "
++       f"fases {sorted(fases_vistas)}")
+ 
+ 
+ if __name__ == "__main__":
+@@ -310,6 +339,7 @@ if __name__ == "__main__":
+     teste_troca_de_fase_anuncio_e_rugido()
+     teste_salto_de_reposicao()
+     teste_chuva_de_bananas()
++    teste_padrao_sem_bonus()
+     teste_janela_de_punicao()
+     teste_luta_completa_com_punicao()
+     M.banco_estatisticas.fechar()
+-- 
+2.43.0
+

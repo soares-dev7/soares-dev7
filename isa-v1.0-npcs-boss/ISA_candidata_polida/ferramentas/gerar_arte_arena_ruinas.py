@@ -205,9 +205,8 @@ def coluna_quebrada(s, x, base, larg, alt, seed, enevoar=0.0):
     cx = x + larg // 2
     for k in range(alt // 2):
         px(s, cx + int(2 * math.sin(k / 3)), topo + 10 + k, mix(PEDRA[2], NEVOA, enevoar))
-    # cipós descendo
-    for i in range(2):
-        cipo(s, x + 2 + i * (larg - 4), topo + 4, alt // 2 + int(10 * h(i, 3, seed)), seed + i, enevoar)
+    # um cipó descendo (pouca vegetação: o musgo está na pedra)
+    cipo(s, x + 2, topo + 4, alt // 3 + int(8 * h(0, 3, seed)), seed, enevoar)
 
 
 def frente():
@@ -223,12 +222,12 @@ def frente():
         coluna_quebrada(s, x, 140, larg, alt, 60 + i, nev)
     # copa invadindo pelo alto: folhagem pendente + cipós
     for x in range(LB):
-        fundo_folha = 10 + int(14 * ruido1(x, 70, 7)) + int(6 * ruido1(x, 71, 2.5))
+        fundo_folha = 4 + int(7 * ruido1(x, 70, 7)) + int(3 * ruido1(x, 71, 2.5))   # copa: só um beiral
         for y in range(0, fundo_folha):
             c = FOLHA[1] if h(x, y, 72) > 0.7 else (FOLHA[0] if y < fundo_folha - 2 else FOLHA[2])
             px(s, x, y, c)
-        if h(x, 0, 73) > 0.94:
-            cipo(s, x, fundo_folha - 1, 20 + int(40 * h(x, 1, 74)), x, 0.1)
+        if h(x, 0, 73) > 0.985:
+            cipo(s, x, fundo_folha - 1, 14 + int(24 * h(x, 1, 74)), x, 0.1)
     return s
 
 

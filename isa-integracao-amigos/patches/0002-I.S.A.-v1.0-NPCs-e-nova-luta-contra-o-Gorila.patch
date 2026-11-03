@@ -1,0 +1,2510 @@
+From 8f6cfd55d8d5911c99e1fd069834f371d6f355a1 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 3 Nov 2026 23:47:53 +0000
+Subject: [PATCH 2/3] I.S.A. v1.0: NPCs e nova luta contra o Gorila
+
+5 NPCs (src/npcs.py, assets/levels/npcs.json), Gorila com salto de
+reposicao, fase 3 (chuva de bananas), anuncios de fase e falas.
+---
+ NOVIDADES_v1.0_NPCS_BOSS.md           |  79 ++++++
+ README.md                             |  15 +-
+ assets/images/npcs/npc_ana_0.png      | Bin 0 -> 563 bytes
+ assets/images/npcs/npc_ana_1.png      | Bin 0 -> 561 bytes
+ assets/images/npcs/npc_ana_2.png      | Bin 0 -> 566 bytes
+ assets/images/npcs/npc_benedito_0.png | Bin 0 -> 592 bytes
+ assets/images/npcs/npc_benedito_1.png | Bin 0 -> 592 bytes
+ assets/images/npcs/npc_benedito_2.png | Bin 0 -> 587 bytes
+ assets/images/npcs/npc_lia_0.png      | Bin 0 -> 542 bytes
+ assets/images/npcs/npc_lia_1.png      | Bin 0 -> 542 bytes
+ assets/images/npcs/npc_lia_2.png      | Bin 0 -> 534 bytes
+ assets/images/npcs/npc_taina_0.png    | Bin 0 -> 545 bytes
+ assets/images/npcs/npc_taina_1.png    | Bin 0 -> 548 bytes
+ assets/images/npcs/npc_taina_2.png    | Bin 0 -> 534 bytes
+ assets/levels/npcs.json               | 130 +++++++++
+ constants.py                          |  25 ++
+ docs/NPCS_E_BOSS.md                   |  79 ++++++
+ ferramentas/gerar_sprites_npc.py      | 230 ++++++++++++++++
+ main.py                               | 172 +++++++++++-
+ src/enemies/boss.py                   | 377 +++++++++++++++++++++++++-
+ src/npcs.py                           | 241 ++++++++++++++++
+ src/setores.py                        |   4 +
+ testes/rodar_todos.py                 |   2 +
+ testes/teste_boss_v1.py               | 316 +++++++++++++++++++++
+ testes/teste_npcs.py                  | 201 ++++++++++++++
+ 25 files changed, 1861 insertions(+), 10 deletions(-)
+ create mode 100644 NOVIDADES_v1.0_NPCS_BOSS.md
+ create mode 100644 assets/images/npcs/npc_ana_0.png
+ create mode 100644 assets/images/npcs/npc_ana_1.png
+ create mode 100644 assets/images/npcs/npc_ana_2.png
+ create mode 100644 assets/images/npcs/npc_benedito_0.png
+ create mode 100644 assets/images/npcs/npc_benedito_1.png
+ create mode 100644 assets/images/npcs/npc_benedito_2.png
+ create mode 100644 assets/images/npcs/npc_lia_0.png
+ create mode 100644 assets/images/npcs/npc_lia_1.png
+ create mode 100644 assets/images/npcs/npc_lia_2.png
+ create mode 100644 assets/images/npcs/npc_taina_0.png
+ create mode 100644 assets/images/npcs/npc_taina_1.png
+ create mode 100644 assets/images/npcs/npc_taina_2.png
+ create mode 100644 assets/levels/npcs.json
+ create mode 100644 docs/NPCS_E_BOSS.md
+ create mode 100644 ferramentas/gerar_sprites_npc.py
+ create mode 100644 src/npcs.py
+ create mode 100644 testes/teste_boss_v1.py
+ create mode 100644 testes/teste_npcs.py
+
+diff --git a/NOVIDADES_v1.0_NPCS_BOSS.md b/NOVIDADES_v1.0_NPCS_BOSS.md
+new file mode 100644
+index 0000000..ad7e753
+--- /dev/null
++++ b/NOVIDADES_v1.0_NPCS_BOSS.md
+@@ -0,0 +1,79 @@
++# I.S.A. v1.0: NPCs e nova luta contra o Gorila
++
++Base: a v0.9 (mapas polidos; ver `../isa-redesign-mapas/`). Os mapas não
++mudaram. Copie `ISA_candidata_polida/` por cima do projeto v0.9.
++
++## Arquivos
++
++| Arquivo | |
++|---|---|
++| `src/npcs.py` | **novo**: NPCs, falas por progresso, recompensa, validação de posição |
++| `assets/levels/npcs.json` | **novo**: posições e falas (editável pela equipe) |
++| `assets/images/npcs/` | **novo**: 4 NPCs em pixel art, 3 quadros cada |
++| `ferramentas/gerar_sprites_npc.py` | **novo**: gera a pixel art dos NPCs |
++| `src/enemies/boss.py` | salto de reposição, fase 3, anúncios, janela de punição, correção do `on_ground` |
++| `src/setores.py` | NPCs por setor; zona da luta passada ao Gorila |
++| `main.py` | conversa (tecla E), caixa de diálogo, HUD do boss (anúncio, contador, balão), avisos |
++| `constants.py` | bloco "Boss v1.0" com os ajustes |
++| `testes/teste_npcs.py`, `testes/teste_boss_v1.py` | **novos** |
++| `testes/rodar_todos.py` | inclui os testes novos |
++| `README.md`, `docs/NPCS_E_BOSS.md` | documentação |
++
++## NPCs
++
++| NPC | Onde | Papel |
++|---|---|---|
++| Guarda Tainá | floresta, perto do spawn | guia (minérios, pulo duplo, golpe); comenta o progresso |
++| Seu Benedito | floresta, antes da ravina | narrativa (a fábrica parou sem cobre e zinco); fala muda depois da caverna |
++| Engenheira Ana | caverna, nos andaimes | guia das galerias; **maçã** ao coletar 8 minérios da caverna |
++| Pesquisadora Lia | copas, Árvore Espiral | ensina a luta contra o Gorila; **maçã** com 5 minérios das copas |
++| Diretor | copas, antes do portal | o executivo das cutscenes (arte `S7.png` existente); fala com o total da partida |
++
++A arte dos quatro primeiros é pixel art nova, feita no estilo dos sprites do
++jogo (`imagens/npcs_pixel_art.png`). O Diretor usa a arte original da equipe.
++
++## Gorila
++
++- **Salta pela arena** entre arremessos: o pouso aparece marcado no chão
++  antes, só em chão livre, nunca perto do jogador.
++- **Fase 3** (2 de vida): **chuva de bananas** com o `cacho_banana.png`. As
++  sombras com anel vermelho marcam o impacto cerca de 1 s antes, com 3 tiles
++  de vão entre os cachos.
++- **Feedback:**
++  - faixa "FASE 2/3" na tela;
++  - falas do Gorila em balão;
++  - rugido sem ataque ao acordar depois da troca de fase;
++  - estrelas no atordoamento;
++  - **MINERIOS DEVOLVIDOS X/8** na HUD.
++- **Janela de punição:** atordoado, ele derruba um minério do lado do jogador.
++  Pegar o minério dá 1 de dano extra, e o Gorila atordoado não machuca por
++  contato.
++- **Correção encontrada pelos testes novos:** o `on_ground` do Gorila oscilava
++  a cada frame parado no chão. Isso também atrasava o salto-pancada original.
++
++Capturas do jogo rodando: `imagens/`.
++
++## Testes executados
++
++`testes_v1.0.txt`: **21/21 aprovados** na suíte completa, incluindo:
++- `teste_boss_v1.py`: 40 saltos validados; chuva com 960 ms de aviso; luta
++  completa vencida em 71 s de jogo;
++- `teste_npcs.py`.
++
++Também rodados com sucesso: `validar_dados.py` (0/0), validador de física real
++(0 erros) e auditor de level design (72 minérios).
++
++**Intermitente (não é regressão):** `teste_gamepad_falso.py` falhou uma vez
++numa rodada da suíte. Ele aperta botões por relógio em tempo real. Rodado 6
++vezes isolado, passou em todas, com e sem NPCs, e a rodada seguinte da suíte
++inteira passou 21/21.
++
++## Pendências
++
++1. **Decisão pedagógica:** com a janela de punição, quem a aproveita sempre
++   vence com **4 perguntas** em vez de 8 (medido). Se a luta precisa de 8
++   perguntas obrigatórias, aumente `GORILA_VIDA` (12–16) ou reduza o bônus.
++   Detalhes em `docs/NPCS_E_BOSS.md`.
++2. **Sem partida manual.** Tudo foi validado por testes automáticos e capturas
++   do loop real; vale jogar a luta e conversar com os NPCs.
++3. A arte nova dos NPCs é minha: revisem se ela combina com o que a equipe quer.
+diff --git a/README.md b/README.md
+index 2199aa0..45f7837 100644
+--- a/README.md
++++ b/README.md
+@@ -57,6 +57,19 @@ da árvore-mãe) → **luta contra o Gorila** → **VITÓRIA** (relatório / jog
+ novo / menu). Morrer mostra o GAME OVER; morrendo na arena aparece também
+ **TENTAR DE NOVO**, que recomeça só a luta.
+ 
++## NPCs e luta contra o Gorila (v1.0)
++
++Cinco NPCs (Guarda Tainá, Seu Benedito, Engenheira Ana, Pesquisadora Lia e o
++Diretor) dão dicas, contam a história da fábrica sem minério e dois deles
++entregam uma maçã quando o jogador já coletou minérios suficientes no setor.
++Para conversar, chegue perto e aperte **E** (ou **X** no controle). As falas
++ficam em `assets/levels/npcs.json`.
++
++O Gorila agora salta pela arena, tem uma 3ª fase com chuva de bananas, avisa
++cada troca de fase e, quando fica atordoado, derruba um minério que dá dano
++extra se for pego. Detalhes, ajustes e a decisão pedagógica em aberto:
++[`docs/NPCS_E_BOSS.md`](docs/NPCS_E_BOSS.md).
++
+ ## Controles
+ 
+ | Ação | Teclado / mouse | Controle (padrão Xbox) |
+@@ -65,7 +78,7 @@ novo / menu). Morrer mostra o GAME OVER; morrendo na arena aparece também
+ | Pular (pulo duplo) | W, ↑ ou Espaço | A |
+ | **Golpe de asa** | **J** ou **F** | **B** ou **Y** |
+ | Pisão | cair em cima do inimigo | — |
+-| Usar passagem | E ou Enter | X |
++| Usar passagem / conversar com NPC | E ou Enter | X |
+ | Pausar | ESC | Start |
+ | Responder | clique, A–E ou 1–5 | direcional + A |
+ | Fechar a pergunta sem responder (minério volta ao mapa) | ESC | B |
+diff --git a/assets/images/npcs/npc_ana_0.png b/assets/images/npcs/npc_ana_0.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..5272b90f8377df54f4c7dda00d9377f60e9462a7
+GIT binary patch
+literal 563
+zcmV-30?hr1P)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0005{Nkl<ZNQvc^
+zJxC)#7>1vSgdnM8kwrqV6gdvDu(Ys9C5Idqi=~K_^>J8SDPkF{Eab`{Ayo?5;)*Nf
+z5IL?`QXFAfB!nRx%d%LxHWzQ#ou8FN5bo{fo0<3herCRz5*pMjJJHRL5r{!aHK&}Y
+zS$1;k{n8S9ULOEwdrK)YQ^dnbFf{>HI;CM1NskPx%kOfjnpG_x=XX-%BB)t*Ql5Rt
+z*gm|sjYRF6p|sF%x5%g6AGB|VuP5*vJ8KKllQgv&_#))mzt7b{8bKJxgmG*nO+!Ym
+z6i7qoy)Qz15o-4<??IYmk~O&q0x>96%2g`mDyxfgMsgFB-4wF@WxZa>%w7BUImcui
+z$`p;sf9_YGY)*U(Kx^&@sL~4}cCK_TDg<hloh)n|{vCbQ60Gbt5kU{WpCzx}Dr6UJ
+zY69)9OS|jlM2yF@2(~L7+-3)WgT^A~E>Gz)3e0@&{2P4nGPdQE?bF3K08aNdGy9DK
+z4<{c}qvMRN7ep}M1fbP&<qnzzio$UkI8GyHpGplt9f9)EAK%>m(!Q2>Bf4bX%KCZk
+z-ch*7MR4nlGOZ(h;j}+HfcnZh0He{6XwXMxd-2as_uqWU+PC|w_<sb<y(sz(fK>*o
+zZqfHe&IU-|f<gjf^rw(b1>;eC-roZ;D9LQ9{f}20%|FU#f&u^l002ovPDHLkV1gW+
+B03QGV
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_ana_1.png b/assets/images/npcs/npc_ana_1.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..32e2bc5473b3cc71c5215745b0566ebfb9722181
+GIT binary patch
+literal 561
+zcmV-10?z%3P)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0005_Nkl<ZNQups
+zKWN)P6vlrJ!I<DFh#-P79YZK3bjX;YgQrqL$sjtG(5Z6>9WsWJ(R9jCI+|iUc_<n>
+zbPOegl0kSVMu=j}VTuqUQ<SAnrRe?z+u(1z?@r(M?!CLGg9W3an`}64W+M`bky1xF
+z(Qw@CD!A4P2f+{kZ~vvzWW^@JSui&PRXU~HvPq8&J6lgnsajPnp5}K}ly=Z?+^o8K
+zTi{+jbB#jX%dxc3%Uk5L{!hA><HZ>~#KH3o=}DSf4MGuf5#E&QAl*Tnro?G#6wN~>
+zt~AI)7kwyVLJ@1fSKfoX$SiA0JBY-nQmfXfRqO0*t{KHmux{78&01mZBD^UDCeu)+
+zXe$2euzt^Z=_vr6wGTj@L6mUtO&6lVpy9aL#@_pXqc2*4?Kf>iG=LwUvW2$_*+rY1
+zLAUSI?fWGY<1w|teyxY!?g8+wwaK~9eY%VWE62V6gOi}ZZRNP5&))$!d;6mBz0u(I
+z<Llh$w7?Cb1lHRCbUMB~K$C$jJg<f4wMzV4Y5?jTD1Z9Xn>&1Rs1@EzzOwEV<2?8O
+zU|nPzTm_Rt>&Ra??aL0JxxEX(WHKfh4N-BAe%a~Xn~zz$yswI-F)+7^<Tn6L6`ZES
+zFcc*YkhW?o12Oq)#i?LCDG%FkBt{h(r~3X5%-795-8!4*00000NkvXXu0mjf1Lh2S
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_ana_2.png b/assets/images/npcs/npc_ana_2.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..f1f1974e56f6105e420a1c7eed9c04efa3232baf
+GIT binary patch
+literal 566
+zcmV-60?GY}P)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0005~Nkl<ZNQvc^
+zKWN)P6vlrJ!I<DF2qS_q9YZK3WXPDIgQrqL@gO>ekSTL09Xf`R(PYX{I+`LpWhfdt
+zbj)Bv$RIofBSbJpm|%p+6m_XwUv+=v#D$iA+xzbBeed48dv_%?s9Scb8_y6%!;)%D
+zIZ(Ik^wPi9I`;hm0M70!rN~l|2%mz538>O3-BywG$gsKoJeR6v)#NO{PepDAb<0l6
+z%MSwg`h{(D<n~6=LjOBOUbukU8{zgwQ@gcQlb$4HkxgiA)dV|;CenG*9ZZshNs`PZ
+zcoEz`uE@F*6hsqc<Qa@9GC45K$?YJFhNVimN~K(7b8W@w+yrGe1+l+uH!8x|MR1=B
+zOy)zGqRjc#es#(@$uR((mG?lEei+mGstZveP`B)~wsZK?`mA-Z@wQDA_Tl?!`o~*^
+z?4m79z&-bH&%K<;qi^yob}L=Hb{Bwy<{D=n({vdHmfm%L86SLsTc6>MK79k=WbdW0
+z-YD?!@y(2NEO7lWhSfFzosK6D&?Hb4j?=_(nmK+UH30Pvl#hOPa|h4%wT^e<FRWT(
+zoM+xGg^OGSm;P929kUls`?CXRY-|HC9*>BJ1617HKRexjbDp_>@1y_!2$*|Od;@@0
+z2CHE)2%;PZNZ*1&0@3)c5T}CiDE{8x!)RENajNw{0MakT_zSH4RR91007*qoM6N<$
+Ef(%*-T>t<8
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_benedito_0.png b/assets/images/npcs/npc_benedito_0.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..af18a6a47c885e33e1c67293db8f1311f435acc6
+GIT binary patch
+literal 592
+zcmV-W0<ZmvP)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0006PNkl<ZNQvE6
+zJxIeq6#gQ?Nkk+=l}w@z4n-WCIypE<v5PpUh?9djI&~;gL>xpn5fulqT`Xcn92`VM
+z#HoY|QmSLHMKXwJ5gp<XayH4kOJj?m-<0=r?|b*&-MdH-KvhDf$nJ)2lqI*$qo@v^
+zKWY;OoZpBz<jb=Y4@pyy3@N0xhLK8bbM18#007<&xF(rW)>0lDle1?+J4pZlg~GFM
+z@cE$=hkQwJaS2)m&)N6q#hNc!Ea`2qkU)fvv1RsM%EX1fKWcI*6NjR-VK5x__2m-e
+za(U!(`I<?yi70t7e|$`DH|LN|M45d5pp$+w5PT#6&OQJ@EF7krtSTWho?P(+s8rqo
+z&?l&4Y#F6YoMqk9t#T8Q0iaMQavj>?-TM8?v{UAk2LNQ<C`*UwT~?y0h=Tnq0|2l(
+z(a&92D`en%%vSe8H_FmNT4S=CY$2^VWUBs*fPzid6<va%7qRiu%WQ^TL~Flw2VS&2
+z{~c6kv3~_~Dx%={bws$(hMj<_?U~dr8Z)j1_<aJaOa?|<PMPj}@!H|zmIDz`7~h!@
+z%5@Xe11`bw>xiRF4JWWk>IL_rCHkzlAbBSaus(1D3;;2Wwl|~)qG2cevjeP~3RvU8
+z9t)I?H;cGC;4KL1`wvIOpCb@9QdL4`UuUyJclY=KN*DM=v+?v?@hqWqJop|(_dk<v
+elqE{XTmJ=dbkA|dtpZg50000<MNUMnLSTa0AOkJ{
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_benedito_1.png b/assets/images/npcs/npc_benedito_1.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..6e02803529a2a86a56e55f7c9d1e22dda968d943
+GIT binary patch
+literal 592
+zcmV-W0<ZmvP)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0006PNkl<ZNQvE7
+zJxIeq6#go~Nkk+=l}w@z4yAN(>g3=c#V+EYB2EtC=+vP|k>Vh_iKsY;?P3uXap+J)
+zM4U>fAf-A6TO@->EuuplLQd1XyEL{s_)U2~_r7=U-Mu8hFT*D?Dze}35=_%8j(A)G
+zMfMwo<1S&q#m%ryzRaFENZPz)NFlX7id1TcYj2tW0PuRqHA$4Rk@8rWp3e&HBmn>v
+zi_fmX7e~%)@+HB=CFmH=vFDGAbyu=z!r5RUfe1YlN%maM#Du;-YH~RfgDiJpI1q64
+z<r3uc1?2OEhDlH25%OaG_?X^qE#M>`Ve<WhM*2yB_mKeD`v3sZK!9$tBKwV4V$~6#
+zR(k_LpP-(JB+8i>%X*++;U*#hK(ScjI&{Oi_50OXyUZyM07#l%@g1f2SczuBG7heE
+z0KnQ*kh`!^NWj;a{oV^rulSbIDwFHUmeQ(Crs~fKC|G2Dkrn7#37ap2%%*E4bOy~k
+z@S^U!@8EkD2Ujp=!ZJ>)W5R_NtOOKw-=KEUnsF__-xHW+(lOp~&UCruYnxBK?1_NF
+z<nEkMZknJOa0yPUW41E2oWLS!7Tk*#A2Qzsi92zCjnEAc0-`EyZ%GeC!%p~R2beb%
+zFvo*67APHW7IAmLTj16AAC8Jv!}b4QsJGpwyL)^GrSts4vGDX<b1b2BJh+~e`cE27
+eulOh(Z~Z6AlFx56!N{io0000<MNUMnLSTYKW);8y
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_benedito_2.png b/assets/images/npcs/npc_benedito_2.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..fd2e190b7a5b71c95d681269c90376434cfeebed
+GIT binary patch
+literal 587
+zcmV-R0<`^!P)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0006KNkl<ZNQvE6
+zJxIe)5dI>;sfb91Dw#wb9EvzNb#ibhVwU2dB2G?@ojMc=A`YUPgNj43T`Zzf92`VM
+z#HoZ1QmSLnA{j)qhz@ZmiTSzr(%2&CH|6f$-FNTqy?YVBfh<K$p4|)Gs0m)3PvHz+
+zKI-NMT-u7e<jb?7kEA0^h7@w!6UgOunD&+l003_XOp{0{n<<Zl*~K%iog@H&O655)
+z_|kaMC0`O;OoGVRx&8flu@Ok7sQw0X33%vDuG-&^g*12Vj|hT-I>9_erBWHCQkm(f
+zs6{C1cMpy;ljOzx(GIMDPTbw=<T?=uKN0|U9{@m!#pou>Qq)YVYrX*W`a1yn1ob9Y
+z@mNUPSq~1#%tS;0s8p)V1wHU@{cdgEEi=jk0HSWxgv0!vU81?Tg#9Z60I)tY!gOpF
+zBJe$CoxRYFnvlwCw(KQK<u#W~)!!zdV3GAtuE5Z%*m@bVZH8V&*GLQi@S<gdci_xo
+z{|e?@T*Ap~g6n9(N<h}KCbf(9jB5^lpP*4D15=SxTX(*E?ONlNLlIDz-d*6zEfcf?
+zCc(*T!d0fW6Idjzf_c$0!;QB<z2yhk9K8WX0Y#(jZRr7T*m3{tfW}P)8sotl3zUvE
+zi<moLIfPyN4@bqHBj7etmZIixU#ClV`|tru7y3oB@bp~wxllS50*|8ipGh}r0;Oa5
+Ze*rHd&){*G-6a43002ovPDHLkV1fdH4y^zH
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_lia_0.png b/assets/images/npcs/npc_lia_0.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..75bb9006ca6c0fd41725f74f38ab4d40c145640f
+GIT binary patch
+literal 542
+zcmV+(0^$9MP)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0005yNkl<ZNQv!M
+zF-yZh6#gnsBAtR{2t~x9NRZ+nMMT6woJt1=3F0VDr4)w@r9%<PB;rr#P&x+j2Z)1+
+zgF`9BAxJ5qloA|@IEitHS9|T<^-`-K_$_z$?(X~EOWxf*;IAVhn$#54mmzVzHkW5w
+zL_BXMW%vQ>&gY2?322Jy6JpQl$O#C*jDR3hccn-S+k&1pnNbW0xL!K~>&~z2C_pR<
+z0ML()<=kapYV4ik3TTQNcs~L&s|NJ68D5|t)n<1j0YS~Sm}x!sCwjdvqh?#Z@l&nN
+zTsN_Qkjj^s2Tqu##%WPVO1xgsm$++$0=%%pto!jar6L&2f>gfL>tCK6fHw#5FT9?B
+zrl|hmmijq*`ywu9dwnBQLHS}205GelC}xt#6>Rwk2+YJH0N`wGUAUPz;5ZHB3bx!`
+z1OV}?Dq?d{U{hsHhk`JR`e9@$R4a>6S+tVQQtiYA9_(|fl>zmMnw>7ykN3@y>>+TR
+zhLnI*1dh|72xZBo1-=6+Z~IR&Il0ce_)XYe4hjT4Z8A?Y6@lxuBcd9I2hnB6B_q-7
+z?<NBAmWS)xpvqv`c#d)ZL6}HHYk$A0_!k(&$nt$79;IwIk6o~A($)1KTF)<1HXeim
+gfmif9&9|}f0qr8Y9#}`CtN;K207*qoM6N<$f~lAC@Bjb+
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_lia_1.png b/assets/images/npcs/npc_lia_1.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..bbb26d1822b852dcb31cdb2cee48dd19c9531353
+GIT binary patch
+literal 542
+zcmV+(0^$9MP)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0005yNkl<ZNQv!M
+zF-yZh6#gnsBAtR{C`H7fNRZ+nMMT6woJt1=3F0VDp%jM<r9%<PB;rr#P&x+j2Z)1+
+zgF`9BAxJ5uloA|@IEitHS9|T<<x;C4_$_z$?(X~EOWxf*;2!~qh$dr->dBC_+zyv#
+zT0}f=reyd5>(1kej0nUO)g#2N)0GntfEfXSQEy3+=(YtdV=|){5oo!c2&_A=vZDa;
+zC;&h^I+k;nfvK@~jw=vTRNwmm%&h9rGG=&zK~$T)KmvlAZ86h&>`(N1Uq;Qg`s1fs
+zow;se{~(<&F%O(DP4&~Fkd%16pe=FN2nBdyhgtXIX-Y*foCWE8so%dmIRI}C;9q!s
+zftaFthg<6B=<SQRobC5@qk{6q9spogQBgEf$Q5k)2nfvNA^_lQZC$vTIN&%9<O;Uj
+zT?7D$t19AiQD9SLO^1Roiw2<^6{?j*s4QB^WT|%I0uS~%)yjbSM9prG>L&)~NcIpo
+zPD4sSDgwu8P=vDN(gNQBmA8W@nVekbUHm3&FZ%_8mNA*9nTnw0b|Ru0hX>JR$0Z}t
+z?C&Oh@wSWWTffR+*?5j||3R2YL~DP)s`zsPfz|a!B1+kA9(!Qfq>JBSw4Yz3Y&-}B
+ge6Q$dly76>1J(Y!9NW$QAOHXW07*qoM6N<$f{G*d)&Kwi
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_lia_2.png b/assets/images/npcs/npc_lia_2.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..c9f0ddf99c7e91a1f77a4dcc22613bd9dd6d2734
+GIT binary patch
+literal 534
+zcmV+x0_pvUP)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0005qNkl<ZNQv!M
+zze~eF6#goX(kV!WP(&Px1Sw8MM8rXyN(KiB;wVm`6o(9@LlMa&;-BD9ItK9%5C`ex
+zP)czKQc5VL1c%}%#vxwpwRh*Wwu0cd-0$yuFZbT%0e>9{(W0iPp$v&1bh$k9BH|@G
+zE5i>swU8$=BA_X1NQeWkCnq2P(*pvl=}VEAt^?h$nO=+t_(3-TrxsTC6d;uZ0O%*D
+za^^BHH}T0y1vEvCte=&@AnNTtcTG2J=!PAS8?M6)YvCn}&~P1U{M=|V_f72%a>Z+A
+z!U;Vv&&xtmV)e4V%H1Or;JH1{zL|$9<-u?i<cimE|K{unyfuLT;Kc%(qK3yi>gVX~
+zi@1`H`=(Vz<>~+cu%M_YTUiuJuDk~Xc4h?taIvu|JWLGmycP;2SMDtWfb?x0sl_C)
+zt+JNKf^?#pR+VaHF;*0<8+odoy1=7*NwqSdK2f{Zr~2uEH4;4pp4XBRkn+IuS`?uy
+zxwODfK*jA~CX>wd-ueFo0N7oN3IyG-nb}Nv;0N7=sK((z^w@F9h&PA(nMk}7;O-%+
+zGFWpw!?<@ajwhnMzh71S3k>7i@_j3vq~`9Q`e4mTSJ%Vnyu3=y@gNk4tfK$Z{5dv0
+Y0N+}<6!VKVqW}N^07*qoM6N<$f(JGC-T(jq
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_taina_0.png b/assets/images/npcs/npc_taina_0.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..3d18fb8e2f062ad4ea375eb0228cf7439d9dc7fe
+GIT binary patch
+literal 545
+zcmV++0^a?JP)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0005#Nkl<ZNQu=}
+zziYxk6#gt3BxEQhLy#a2B|`^sawr|8ba3e4pCBDXI*UU`aqH$#oShsxI64*wCn+6@
+zNC_c`l^_m59E5a8qdAki{HRj=rn`6V-uLdkd-pB@24qpPnzcLX`uoQh0HD(wLpNp#
+zKb<oc!69&T0?)BzQL>z|kOZ=_5NKpDF^Rc5Tm*qEN>;sc6UR{kjn><igxg<KwfUb3
+z+@OX?NbY2h1tri>qc`4;-68TMnRea6KsRQI{rw&Scam8szw`;OX&?w>QL=>OE<8(f
+z6^07{P%kRJ&c&{S_Co>n;x0F1-SE{rSfO=C3*Y>CuBjVO_c^9f$7@9vsX9yo+OebP
+zc|x=_SCNt%1kY2k+1SR<1s>*lw^qts5F5Lr1u>`94>LpnP^xBq<$2k@%fsH3xu1E9
+z^2JmTKT6ds^2HRjKnVifm?b!l2gmWaDv-vXtGB2XqUR>`TlD?;8re7yA_oqdeLfb!
+z(OYKV2{e@~qE?wlr5!#OfduIc`3yAsKsv*Fh-vu05T$jyj5V-5Rn#>U2pCe<4{`$5
+zV@K`3PGvgZ7*(62^V=f*WRbs)QJOzX_w@g!r%%94q%2C-^(Fbc9!yO5$zpf3>B0;p
+jqk&0adqs9Cy38LxPXDp32};W900000NkvXXu0mjf<U{c}
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_taina_1.png b/assets/images/npcs/npc_taina_1.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..74fe167429ab703443df811f8a2e1d34b5bedb90
+GIT binary patch
+literal 548
+zcmV+<0^9wGP)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0005&Nkl<ZNQu=}
+zziYxk6#h~&NXSr129Y2RB|`^sawr|8ba3e4pCBDXI*UU`aqH$#oShsxI64*wCn+6@
+zNC_c`l^_m59E5bR(Oi?eOZ?H&Z%W?Xz3<(7_kIZAKvm)nZ;xqB1lpR&Q(mv!P}g7I
+zJ^%o%4jdZE3D3HHadZOTwY)x;V?bJ!xk`E?oA~#-iy%;yxKk}%?P4f_TH|Fy;tR5F
+zO!p@6g6bkUww2xIG_ImrXSn(Hy2uw~)|=+Rv?jvO^FD$wi3I?~r!HYN4FrLz#2q=d
+zb<f;hgy8}JRP$P(aXaTh^Dc*KejA&iX$9^(SfaHDv%vT<Yth4PhN;xGT2mG39wq_p
+z+EMoTTr{^Ak%G&EuT-p7Yvrf11bew%D`d`ygYChL_^0I$(?tMKD5nGES#|xE`<*fK
+zJo6Q0^9de53gtAi`2;mV2?Eoa2%;!K6eV2bNac^^YgBU4V-va-eZD_ORt|)Sfs1-q
+z+KJ%kEt7i#Lno7{QIt?>hK~i8Aekb|K)nkjQ<9IEhQD)B(p;yp0k)-@zJvxDeaiYl
+zZon#b)c)&craQ*y#uTmZ78xXqJUT{c{;a+Ke>VO7;nxdQi946)<nY@Y*$9&D+;GM-
+mJCuwDCc)Y&vXRhb!T17)_qEhcgFkEl0000<MNUMnLSTZYUHk3;
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/images/npcs/npc_taina_2.png b/assets/images/npcs/npc_taina_2.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..b3024962073f28fb5cefe0cd3b826f4d702451ae
+GIT binary patch
+literal 534
+zcmV+x0_pvUP)<h;3K|Lk000e1NJLTq000;O001Ni1^@s6lh67t0005qNkl<ZNQu=}
+zziYxk6n-fgBxEQhLy$upN`?;N<WM?F>5!p=e?ljb&f?Hf+`2h+c5>*D(Xlu<N$F66
+zln{bg3E~jMK}d%*nlpEooQ)K}DS7wqeecJ;dnW(`NKySx^Nzay{_zC>06oJ5$DIiz
+zoii3e7C1UVEG(p`e)uit07^(sG%}oc*nc!#7y(jLzg53E#8C|G?%S3`++Vcp`JV}*
+zpr%O9?PQNtEzwZhFt^{)6vc{6J8o&<xHDmYe~chn<Sc*@AVu}%+%7#!Z$;hMHcTun
+zEnOoz7b|jFv~;{KrsERzGHbN{ctNZmGlHl4GSg`2wT2X`4wHZuHjiE`MN4nREG{o%
+zSH)%%7(bUK@YcJvTKNLo*dH&je_H<}o}yZ#M3h%haF$2Ll)0aIiYj_Oi63f>5>)g&
+zwLvig$DIkHD1j(Sa8<>PKR0fnS>>-y>bvOs^Of5;07oZx2GT(UM<1Dq5!e>qMBN7o
+z>M!YQkw{P|;@3cD08l7OF=872FGU3>Xk#1Lo@&+_G>~CLS<fT_)@4VXzhP&F&lt;|
+zL+^Kjk!0LYN1ox&(mnmR>FE<N3yBofzrMs@*TabiB-z0eZMyJM$!K5_1YY5jiY_DL
+Y2R8+<!+J~68~^|S07*qoM6N<$g4WaLbpQYW
+
+literal 0
+HcmV?d00001
+
+diff --git a/assets/levels/npcs.json b/assets/levels/npcs.json
+new file mode 100644
+index 0000000..accf729
+--- /dev/null
++++ b/assets/levels/npcs.json
+@@ -0,0 +1,130 @@
++{
++  "_leia_me": [
++    "NPCs por setor. Posicao: 'coluna' e 'base' (linha do BLOCO SOLIDO onde o NPC pisa), igual aos marcadores do CSV.",
++    "sprite: prefixo dos quadros em assets/images/npcs/ (npc_<sprite>_0..2.png) ou 'personagens:<arquivo>' para usar uma arte existente.",
++    "falas: o PRIMEIRO bloco cujas condicoes valem e o que o NPC diz. Condicoes aceitas: min_coletados_setor, max_coletados_setor,",
++    "min_coletados_total, max_coletados_total, visitou (nome de setor). Textos aceitam {coletados_setor}, {total_setor}, {coletados_total}.",
++    "recompensa (opcional): entregue UMA vez por partida quando a condicao vale; 'item': 'maca' (cura)."
++  ],
++  "floresta": [
++    {
++      "id": "taina",
++      "nome": "Guarda Taina",
++      "sprite": "taina",
++      "coluna": 20,
++      "base": 30,
++      "falas": [
++        {"min_coletados_setor": 15, "linhas": [
++          "A floresta agradece, Areninha! Ja sao {coletados_setor} minerios.",
++          "Ao pe da Arvore-Mae, la no fim, um cipo sobe ate as copas."
++        ]},
++        {"min_coletados_setor": 4, "linhas": [
++          "Voce esta pegando o jeito! {coletados_setor} de {total_setor} minerios aqui.",
++          "A boca da caverna fica na ravina, mais adiante. Aperte E para descer."
++        ]},
++        {"linhas": [
++          "Ola, Areninha! Sou a Taina, guarda desta floresta.",
++          "Os minerios brilham pelo caminho. Toque num deles e responda a pergunta.",
++          "Acertou, ganha vida. Errou, perde um pouco. Pense com calma!",
++          "Pulo duplo: aperte pular de novo no ar. Golpe de asa: tecla J."
++        ]}
++      ]
++    },
++    {
++      "id": "benedito",
++      "nome": "Seu Benedito",
++      "sprite": "benedito",
++      "coluna": 74,
++      "base": 30,
++      "falas": [
++        {"visitou": "caverna", "linhas": [
++          "Voltou da caverna inteira! Os andaimes ainda aguentam, ne?",
++          "Se encontrar a engenheira Ana, manda lembrancas do velho Benedito."
++        ]},
++        {"linhas": [
++          "Ei, passarinho! Benedito, minerador ha quarenta anos.",
++          "A fabrica parou por falta de cobre e zinco. Sem minerio, nada de pecas.",
++          "La embaixo, na caverna, os veios ainda estao cheios.",
++          "Mas cuidado com as aranhas penduradas no teto!"
++        ]}
++      ]
++    }
++  ],
++  "caverna": [
++    {
++      "id": "ana",
++      "nome": "Engenheira Ana",
++      "sprite": "ana",
++      "coluna": 61,
++      "base": 35,
++      "recompensa": {
++        "min_coletados_setor": 8,
++        "item": "maca",
++        "linhas": ["Que coleta! Tome esta maca, voce vai precisar de forcas."]
++      },
++      "falas": [
++        {"min_coletados_setor": 8, "linhas": [
++          "A saida fica no fim da caverna, depois da camara das tochas.",
++          "O Benedito tem razao: estes veios valem ouro. Quer dizer, cobre!"
++        ]},
++        {"linhas": [
++          "Areninha! Sou a Ana, engenheira de minas.",
++          "Estes andaimes sobem ate uma galeria antiga, por cima da passagem estreita.",
++          "No fundo ha um poco de cristais e uma gruta com veios ricos.",
++          "Traga 8 minerios daqui e eu te dou algo para a viagem."
++        ]}
++      ]
++    }
++  ],
++  "copas": [
++    {
++      "id": "lia",
++      "nome": "Pesquisadora Lia",
++      "sprite": "lia",
++      "coluna": 92,
++      "base": 20,
++      "recompensa": {
++        "min_coletados_setor": 5,
++        "item": "maca",
++        "linhas": ["Voce coleta rapido! Leve esta maca para a luta."]
++      },
++      "falas": [
++        {"min_coletados_setor": 5, "linhas": [
++          "Quando o Gorila ficar tonto, um minerio cai no chao.",
++          "Pegue e ele volta voando na cabeca dele. Dano extra!"
++        ]},
++        {"linhas": [
++          "Psiu! Fale baixo... Sou a Lia, estudo os animais da copa.",
++          "Um Gorila Guardiao vive no topo. Ele protege a ultima jazida.",
++          "Ele arremessa bananas: fique fora da sombra que aparece no chao!",
++          "Quando jogar um MINERIO, deixe acertar e responda certo para devolver."
++        ]}
++      ]
++    },
++    {
++      "id": "diretor",
++      "nome": "Diretor",
++      "sprite": "personagens:S7.png",
++      "coluna": 148,
++      "base": 17,
++      "falas": [
++        {"min_coletados_total": 40, "linhas": [
++          "Incrivel: {coletados_total} minerios! A producao ja voltou a girar.",
++          "So falta a jazida do Gorila. Respire fundo e va em frente!"
++        ]},
++        {"max_coletados_total": 4, "linhas": [
++          "Areninha! A fabrica esta a poucas horas de parar.",
++          "Voce chegou ate aqui com poucos minerios...",
++          "Cada minerio e uma pergunta respondida e um passo para salvar a producao.",
++          "O Gorila Guardiao esta logo ali no portal. Prepare-se bem!"
++        ]},
++        {"linhas": [
++          "Areninha! A fabrica esta a poucas horas de parar.",
++          "Voce ja trouxe {coletados_total} minerios. Cada um ajuda!",
++          "O ultimo obstaculo e o Gorila Guardiao, logo ali no portal.",
++          "A industria, e a cidade inteira, contam com voce."
++        ]}
++      ]
++    }
++  ]
++}
+diff --git a/constants.py b/constants.py
+index 4b65af8..da7972b 100644
+--- a/constants.py
++++ b/constants.py
+@@ -405,6 +405,31 @@ QUIZ_BOSS_CHARS_POR_S     = 18     # ~velocidade de leitura de um aluno
+ # Invencibilidade ao voltar do quiz do boss (não leva banana "de graça").
+ GRACA_POS_QUIZ_MS         = 1200
+ 
++# ── Boss v1.0: movimento, fase 3, feedback e janela de punição ───────────────
++# Fase 3 com vida <= VIDA//4 (2 de 8): chuva de bananas + arremessos rápidos.
++GORILA_INTERVALO_ATAQUE_F3 = 800   # ms entre arremessos, fase 3
++# Salto de reposição: o Gorila troca de lugar na arena entre arremessos. O
++# ponto de pouso aparece marcado no chão durante o aviso; nunca pousa perto
++# do jogador.
++GORILA_SALTO_AVISO_MS     = 550
++GORILA_SALTO_A_CADA       = (3, 2, 2)   # arremessos entre saltos, por fase
++GORILA_SALTO_DIST_PLAYER  = 4           # tiles mínimos entre o pouso e o jogador
++# Chuva de bananas (fase 3): cachos caem do alto com a sombra marcando o
++# ponto de impacto antes; 3 tiles entre um cacho e outro (sempre há vão).
++GORILA_CHUVA_AVISO_MS     = 700
++GORILA_CHUVA_INTERVALO    = 6500
++GORILA_CHUVA_ESPACO_TILES = 3
++GORILA_CHUVA_ATRASO_MS    = 140         # entre um cacho e o próximo
++GORILA_CHUVA_DANO         = 10
++# Troca de fase: faixa de anúncio na tela e rugido ao acordar do atordoamento
++# (sem ataque durante o rugido).
++GORILA_ANUNCIO_MS         = 2400
++GORILA_RUGIDO_FASE_MS     = 1000
++# Janela de punição: atordoado, o Gorila derruba um minério do lado do
++# jogador; pegá-lo antes do fim do atordoamento devolve o minério e causa
++# dano extra (sem pergunta). O atordoado também não machuca por contato.
++GORILA_DANO_BONUS         = 1
++
+ # ── Câmera ────────────────────────────────────────────────────────────────────
+ # Tudo em tiles (multiplicado por TILE_SIZE), para acompanhar o SCALE sem
+ # precisar recalibrar. Ver a explicação completa em main.atualizar_camera.
+diff --git a/docs/NPCS_E_BOSS.md b/docs/NPCS_E_BOSS.md
+new file mode 100644
+index 0000000..3672f23
+--- /dev/null
++++ b/docs/NPCS_E_BOSS.md
+@@ -0,0 +1,79 @@
++# NPCs e luta contra o Gorila (v1.0)
++
++## NPCs
++
++Cinco personagens que conversam com a Areninha (tecla **E**, ou **X** no controle).
++Eles não têm colisão, não são inimigos e não abrem pergunta. A conversa não
++pausa o jogo e fecha sozinha se o jogador se afastar. Quando há uma passagem
++ao alcance, a tecla E vai para a passagem.
++
++| NPC | Setor (coluna) | Papel | Arte |
++|---|---|---|---|
++| Guarda Tainá | floresta (20), perto do spawn | guia: minérios, perguntas, pulo duplo, golpe | pixel art nova |
++| Seu Benedito | floresta (74), antes da ravina | narrativa: a fábrica sem cobre e zinco; muda a fala depois da caverna | pixel art nova |
++| Engenheira Ana | caverna (61), nos andaimes | guia das galerias + **recompensa** (maçã com 8 minérios da caverna) | pixel art nova |
++| Pesquisadora Lia | copas (92), Árvore Espiral | aviso sobre o Gorila + **recompensa** (maçã com 5 minérios das copas) | pixel art nova |
++| Diretor | copas (148), antes do portal da arena | narrativa: o executivo das cutscenes, fala com o total da partida | `S7.png` (arte existente) |
++
++- **"!"** sobre a cabeça: o NPC tem algo novo a dizer (fala nova liberada ou
++  recompensa pronta). **"..."**: está falando.
++- Recompensa: a maçã cai no chão ao lado do NPC, uma vez por partida. Ela
++  só é consumida se o jogador estiver ferido (regra da maçã do jogo).
++
++### Editar falas e posições: `assets/levels/npcs.json`
++
++Cada NPC tem `coluna` e `base` (a linha do **bloco sólido** onde pisa, como nos
++marcadores do CSV). `falas` é uma lista de blocos: vale o **primeiro** cuja
++condição é verdadeira, então os mais específicos vêm antes.
++
++Condições: `min_coletados_setor`, `max_coletados_setor`, `min_coletados_total`,
++`max_coletados_total`, `visitou` (nome de setor). Textos aceitam
++`{coletados_setor}`, `{total_setor}` e `{coletados_total}`.
++
++Use texto **sem acento**: a fonte de pixel (`upheavtt`) não tem acentos, como
++no resto da HUD. Cada linha cabe em até 3 linhas da caixa.
++
++`testes/teste_npcs.py` valida o posicionamento: chão sob os pés, 2 células
++livres acima, ≥ 4 colunas de passagens e chegadas, ≥ 2 de minérios e cobras.
++
++### Arte
++
++`python ferramentas/gerar_sprites_npc.py --previa previa.png` redesenha os
++quatro NPCs em pixel art (24×36 px, ampliados 2× no jogo, contorno escuro
++automático; 3 quadros: parado, respirando, piscando). Para usar outra arte,
++coloque o PNG em `assets/images/npcs/npc_<nome>_0..2.png` ou use
++`"sprite": "personagens:<arquivo>.png"` no JSON.
++
++## Gorila Guardião: o que mudou
++
++| | Antes | Agora |
++|---|---|---|
++| Posição | parado no centro | **salta para outro ponto** a cada 3 arremessos (2 nas fases 2–3); pouso marcado no chão 0,55 s antes; só em chão livre, nunca a menos de 4 tiles do jogador |
++| Fases | 2 | **3**: com 1/4 da vida, **chuva de bananas** (`cacho_banana.png`) e arremessos a cada 0,8 s |
++| Troca de fase | só o número na HUD | **faixa na tela**, fala do Gorila, tremor e **rugido sem ataque** ao acordar |
++| Atordoado | 3 s de espera; encostar machucava | **janela de punição**: cai um minério do lado do jogador; pegá-lo tira 1 de vida extra. Atordoado não fere por contato. Estrelas sobre a cabeça |
++| HUD | barra + "FASE" | + **MINÉRIOS DEVOLVIDOS X/8** e balão de fala |
++
++Justiça (verificada em `testes/teste_boss_v1.py`):
++
++- todo ataque novo tem aviso;
++- os cachos da chuva caem com 3 tiles de vão entre si, e a sombra marca o
++  ponto real de impacto (chão ou plataforma) cerca de 1 s antes;
++- o salto nunca pousa em plataforma, fora da arena ou perto do jogador.
++
++**Correção encontrada pelos testes:** o `on_ground` do Gorila alternava a
++cada frame parado no chão (gravidade < 1 px por frame + `int()`), e o
++salto-pancada da fase 2 só podia começar em frames alternados. Agora uma
++sonda de 1 px sob os pés mantém o estado estável.
++
++### Ajustes (`constants.py`, bloco "Boss v1.0")
++
++`GORILA_SALTO_A_CADA`, `GORILA_SALTO_AVISO_MS`, `GORILA_CHUVA_INTERVALO`,
++`GORILA_CHUVA_ESPACO_TILES`, `GORILA_CHUVA_DANO`, `GORILA_INTERVALO_ATAQUE_F3`,
++`GORILA_RUGIDO_FASE_MS`, `GORILA_ANUNCIO_MS`, `GORILA_DANO_BONUS`.
++
++**Decisão pedagógica em aberto:** com `GORILA_DANO_BONUS = 1`, um jogador que
++aproveita todas as janelas vence com **4 perguntas** em vez de 8 (medido no
++teste da luta completa). Para manter 8 perguntas obrigatórias com a janela
++de punição, aumente `GORILA_VIDA` para 12–16. Isso exige ajustar a checagem
++`VIDA_MAX == 8` em `testes/teste_boss_projetil.py`.
+diff --git a/ferramentas/gerar_sprites_npc.py b/ferramentas/gerar_sprites_npc.py
+new file mode 100644
+index 0000000..05a253b
+--- /dev/null
++++ b/ferramentas/gerar_sprites_npc.py
+@@ -0,0 +1,230 @@
++"""
++gerar_sprites_npc.py — desenha os NPCs do I.S.A. em pixel art.
++
++Cada NPC é montado em resolução NATIVA de 24x36 px (o jogo amplia 2x, sem
++suavizar: 48x72 px na tela, um pouco mais alto que a Areninha) a partir de um
++corpo-base e de acessórios. Depois de desenhado, recebe um CONTORNO escuro
++automático (todo pixel transparente vizinho de um pintado), o mesmo
++acabamento dos sprites de inimigos e da Areninha.
++
++Quadros gravados em assets/images/npcs/:
++    npc_<id>_0.png   parado
++    npc_<id>_1.png   respirando (tronco e cabeça 1 px abaixo)
++    npc_<id>_2.png   piscando
++
++O NPC é desenhado olhando para a DIREITA; o jogo espelha quando precisa.
++
++uso:  python ferramentas/gerar_sprites_npc.py [--previa saida.png]
++"""
++import os
++import sys
++from pathlib import Path
++
++RAIZ = Path(__file__).resolve().parents[1]
++os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
++import pygame  # noqa: E402
++
++L, A = 24, 36
++CONTORNO = (28, 20, 24)
++
++# ── paletas (claro, sombra) ───────────────────────────────────────────────────
++PELE = {
++    "clara": ((240, 196, 160), (206, 152, 118)),
++    "media": ((205, 146, 100), (168, 110, 72)),
++    "morena": ((150, 96, 62), (112, 68, 42)),
++    "escura": ((112, 70, 46), (82, 50, 32)),
++}
++
++
++def ret(s, cor, x, y, w, h):
++    pygame.draw.rect(s, cor, (x, y, w, h))
++
++
++def px(s, cor, x, y):
++    if 0 <= x < L and 0 <= y < A:
++        s.set_at((x, y), cor)
++
++
++def contornar(s):
++    """Contorno de 1 px em volta de tudo que foi pintado."""
++    out = s.copy()
++    for y in range(A):
++        for x in range(L):
++            if s.get_at((x, y)).a:
++                continue
++            if any(0 <= x + dx < L and 0 <= y + dy < A and s.get_at((x + dx, y + dy)).a
++                   for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
++                out.set_at((x, y), CONTORNO)
++    return out
++
++
++# ── corpo-base ────────────────────────────────────────────────────────────────
++def corpo(s, p, dy=0, piscar=False):
++    """
++    p: dict de cores — pele, cabelo, camisa, calca, sapato (cada um (claro, sombra)).
++    dy: deslocamento do tronco/cabeça (respiração). As pernas não se mexem.
++    """
++    pele, pele_s = p["pele"]
++    cam, cam_s = p["camisa"]
++    cal, cal_s = p["calca"]
++    sap, sap_s = p["sapato"]
++    cab, cab_s = p["cabelo"]
++
++    # pernas (fixas)
++    ret(s, cal, 8, 26, 3, 7); ret(s, cal_s, 10, 26, 1, 7)
++    ret(s, cal, 13, 26, 3, 7); ret(s, cal_s, 15, 26, 1, 7)
++    ret(s, sap, 8, 33, 4, 2); ret(s, sap_s, 8, 34, 4, 1)
++    ret(s, sap, 13, 33, 4, 2); ret(s, sap_s, 13, 34, 4, 1)
++
++    y = dy
++    # braço de trás (mais escuro), tronco, braço da frente
++    ret(s, cam_s, 6, 17 + y, 2, 8); ret(s, pele_s, 6, 25 + y, 2, 2)
++    ret(s, cam, 8, 16 + y, 8, 11); ret(s, cam_s, 14, 16 + y, 2, 11)
++    ret(s, cam_s, 8, 25 + y, 8, 2)          # barra da camisa
++    ret(s, cam, 16, 17 + y, 2, 8); ret(s, cam_s, 17, 17 + y, 1, 8)
++    ret(s, pele, 16, 25 + y, 2, 2); ret(s, pele_s, 17, 26 + y, 1, 1)
++    # pescoço e cabeça
++    ret(s, pele_s, 10, 14 + y, 4, 2)
++    ret(s, pele, 7, 5 + y, 11, 10)
++    ret(s, pele, 8, 4 + y, 9, 1)
++    ret(s, pele_s, 7, 13 + y, 11, 2)       # queixo/sombra
++    px(s, pele, 18, 9 + y); px(s, pele_s, 18, 10 + y)   # nariz
++    # cabelo: topo e nuca (o lado direito é o rosto)
++    ret(s, cab, 7, 3 + y, 10, 3); ret(s, cab, 6, 5 + y, 3, 7); ret(s, cab_s, 6, 9 + y, 2, 3)
++    ret(s, cab_s, 7, 5 + y, 10, 1)
++    # olho e boca
++    if piscar:
++        ret(s, CONTORNO, 14, 9 + y, 2, 1)
++    else:
++        px(s, (250, 250, 250), 14, 8 + y); px(s, CONTORNO, 15, 8 + y)
++        px(s, (250, 250, 250), 14, 9 + y); px(s, CONTORNO, 15, 9 + y)
++    ret(s, pele_s, 15, 12 + y, 2, 1)
++    return y
++
++
++# ── NPCs ──────────────────────────────────────────────────────────────────────
++def guarda_taina(s, dy, piscar):
++    """Guarda-florestal: chapéu de abas largas, camisa oliva, distintivo."""
++    p = {"pele": PELE["morena"], "cabelo": ((40, 28, 24), (24, 16, 14)),
++         "camisa": ((112, 128, 70), (82, 96, 50)), "calca": ((150, 126, 84), (118, 96, 62)),
++         "sapato": ((86, 56, 36), (60, 38, 24))}
++    y = corpo(s, p, dy, piscar)
++    ret(s, p["cabelo"][0], 4, 9 + y, 3, 9); ret(s, p["cabelo"][1], 4, 14 + y, 2, 4)   # rabo de cavalo
++    ret(s, (150, 126, 84), 4, 4 + y, 17, 2); ret(s, (118, 96, 62), 4, 5 + y, 17, 1)   # aba
++    ret(s, (164, 140, 96), 8, 0 + y, 9, 4); ret(s, (118, 96, 62), 15, 0 + y, 2, 4)    # copa
++    ret(s, (86, 56, 36), 8, 3 + y, 9, 1)                                              # fita
++    ret(s, (232, 196, 60), 10, 18 + y, 2, 2); px(s, (255, 236, 140), 10, 18 + y)      # distintivo
++    ret(s, (82, 96, 50), 8, 22 + y, 8, 1)                                             # cinto
++    px(s, (232, 196, 60), 12, 22 + y)
++
++
++def seu_benedito(s, dy, piscar):
++    """Mineiro veterano: capacete amarelo com lanterna, bigode branco, macacão azul, picareta."""
++    p = {"pele": PELE["media"], "cabelo": ((210, 210, 214), (160, 160, 168)),
++         "camisa": ((62, 96, 156), (42, 68, 118)), "calca": ((62, 96, 156), (42, 68, 118)),
++         "sapato": ((70, 46, 30), (48, 30, 20))}
++    y = corpo(s, p, dy, piscar)
++    # picareta na mão de trás (cabo diagonal atrás do corpo)
++    for i in range(10):
++        px(s, (120, 80, 44), 4 + i // 3, 14 + i + y)
++    ret(s, (150, 150, 160), 1, 12 + y, 7, 2); ret(s, (110, 110, 122), 1, 13 + y, 7, 1)
++    # capacete + lanterna
++    ret(s, (238, 196, 40), 7, 1 + y, 10, 4); ret(s, (198, 156, 24), 15, 1 + y, 2, 4)
++    ret(s, (238, 196, 40), 6, 4 + y, 13, 1); ret(s, (198, 156, 24), 6, 5 + y, 13, 1)
++    ret(s, (90, 90, 100), 15, 1 + y, 4, 4)                                            # aro da lanterna
++    ret(s, (255, 244, 170), 16, 2 + y, 2, 2); px(s, (255, 255, 255), 17, 2 + y)
++    # bigode e sobrancelha brancos
++    ret(s, (230, 230, 234), 14, 11 + y, 4, 1); px(s, (230, 230, 234), 13, 12 + y)
++    ret(s, (230, 230, 234), 13, 7 + y, 3, 1)
++    # alças do macacão
++    ret(s, (42, 68, 118), 9, 16 + y, 1, 5); ret(s, (42, 68, 118), 13, 16 + y, 1, 5)
++    ret(s, (232, 196, 60), 9, 20 + y, 1, 1); ret(s, (232, 196, 60), 13, 20 + y, 1, 1)
++
++
++def engenheira_ana(s, dy, piscar):
++    """Engenheira de minas: capacete branco, colete laranja refletivo, prancheta."""
++    p = {"pele": PELE["escura"], "cabelo": ((34, 24, 22), (20, 14, 12)),
++         "camisa": ((70, 110, 170), (50, 82, 132)), "calca": ((58, 62, 78), (40, 44, 56)),
++         "sapato": ((60, 50, 44), (40, 32, 28))}
++    y = corpo(s, p, dy, piscar)
++    ret(s, p["cabelo"][0], 5, 6 + y, 3, 8); ret(s, p["cabelo"][1], 5, 11 + y, 2, 3)   # cabelo volumoso
++    # capacete branco
++    ret(s, (236, 236, 236), 7, 1 + y, 10, 4); ret(s, (196, 196, 204), 15, 1 + y, 2, 4)
++    ret(s, (236, 236, 236), 6, 4 + y, 13, 1); ret(s, (196, 196, 204), 6, 5 + y, 13, 1)
++    # colete laranja com faixas refletivas
++    ret(s, (238, 120, 36), 8, 16 + y, 3, 9); ret(s, (238, 120, 36), 13, 16 + y, 3, 9)
++    ret(s, (200, 92, 24), 15, 16 + y, 1, 9)
++    ret(s, (240, 240, 210), 8, 21 + y, 3, 1); ret(s, (240, 240, 210), 13, 21 + y, 3, 1)
++    # prancheta na mão da frente
++    ret(s, (130, 90, 50), 17, 20 + y, 4, 6); ret(s, (248, 248, 240), 18, 21 + y, 2, 4)
++    ret(s, (160, 160, 170), 18, 22 + y, 2, 1); ret(s, (160, 160, 170), 18, 24 + y, 2, 1)
++    ret(s, (200, 200, 210), 18, 19 + y, 2, 1)
++
++
++def pesquisadora_lia(s, dy, piscar):
++    """Pesquisadora (bióloga): bandana verde, roupa cáqui, binóculo, mochila, trança ruiva."""
++    p = {"pele": PELE["clara"], "cabelo": ((196, 92, 44), (150, 62, 30)),
++         "camisa": ((206, 186, 136), (170, 150, 104)), "calca": ((120, 104, 72), (92, 78, 52)),
++         "sapato": ((90, 60, 38), (64, 42, 26))}
++    y = corpo(s, p, dy, piscar)
++    # mochila nas costas
++    ret(s, (130, 86, 48), 3, 16 + y, 4, 9); ret(s, (100, 64, 34), 3, 22 + y, 4, 3)
++    ret(s, (100, 64, 34), 5, 16 + y, 1, 9)
++    # trança
++    ret(s, p["cabelo"][0], 5, 8 + y, 2, 9); px(s, (60, 140, 80), 5, 17 + y); px(s, (60, 140, 80), 6, 17 + y)
++    # bandana verde
++    ret(s, (60, 140, 80), 7, 3 + y, 10, 2); ret(s, (40, 104, 58), 7, 4 + y, 10, 1)
++    ret(s, (60, 140, 80), 5, 4 + y, 2, 2)
++    # binóculo no peito
++    ret(s, (40, 40, 48), 10, 19 + y, 5, 3); ret(s, (90, 120, 160), 11, 20 + y, 1, 1)
++    ret(s, (90, 120, 160), 13, 20 + y, 1, 1); ret(s, (40, 40, 48), 11, 16 + y, 1, 3)
++    ret(s, (40, 40, 48), 14, 16 + y, 1, 3)
++    # bolsos
++    ret(s, (170, 150, 104), 9, 23 + y, 2, 2); ret(s, (170, 150, 104), 13, 23 + y, 2, 2)
++
++
++NPCS = {
++    "taina": guarda_taina,
++    "benedito": seu_benedito,
++    "ana": engenheira_ana,
++    "lia": pesquisadora_lia,
++}
++
++
++def quadros(desenhar):
++    out = []
++    for dy, piscar in ((0, False), (1, False), (0, True)):
++        s = pygame.Surface((L, A), pygame.SRCALPHA)
++        desenhar(s, dy, piscar)
++        out.append(contornar(s))
++    return out
++
++
++def main(argv=None):
++    argv = sys.argv[1:] if argv is None else argv
++    pygame.init()
++    pygame.display.set_mode((1, 1))
++    pasta = RAIZ / "assets" / "images" / "npcs"
++    pasta.mkdir(parents=True, exist_ok=True)
++    todos = {}
++    for nome, f in NPCS.items():
++        qs = quadros(f)
++        todos[nome] = qs
++        for i, q in enumerate(qs):
++            pygame.image.save(q, str(pasta / f"npc_{nome}_{i}.png"))
++    print(f"{len(NPCS)} NPCs x 3 quadros gravados em {pasta}")
++    if "--previa" in argv:
++        destino = argv[argv.index("--previa") + 1]
++        k = 6
++        prev = pygame.Surface((len(NPCS) * (L * k + 20) * 2, A * k + 20))
++        prev.fill((90, 130, 110))
++        x = 10
++        for qs in todos.values():
++            for q in (qs[0], qs[1]):
++                prev.blit(pygame.transform.scale(q, (L * k, A * k)), (x, 10))
++                x += L * k + 20
++        pygame.image.save(prev, destino)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/main.py b/main.py
+index 17404af..6f13f72 100644
+--- a/main.py
++++ b/main.py
+@@ -15,6 +15,7 @@ from src.creditos import TelaCreditos
+ from src.combate import EfeitosCombate, GolpeAsa
+ from src.cutscene import Cutscene
+ from src.enemies.boss import Gorila
++from src import npcs as npcs_mod
+ from src.estatisticas import Banco as BancoEstatisticas
+ from src.estatisticas import TelaEstatisticas
+ from src.quiz_tela import TelaQuiz
+@@ -636,6 +637,12 @@ passagens_cenario = None   # GerenciadorPassagens do setor ativo
+ area_boss = None           # só no setor da arena (ver setores.montar_area_boss)
+ passagem_ao_alcance = None # passagem que o player pode usar AGORA (ou None)
+ interagir_pressionado = False  # borda da tecla/botao de interacao
++# NPCs (src/npcs.py): quem está ao alcance da tecla E e a conversa aberta
++# ({"npc", "linhas", "i"} ou None). Setores já visitados nesta partida
++# mudam algumas falas.
++npc_ao_alcance = None
++dialogo = None
++setores_visitados = set()
+ enemies = []
+ itens = []
+ curas = []                 # itens de cura (maçãs) do setor ativo
+@@ -1043,8 +1050,11 @@ def _assentar(entidade, col, row_superficie, altura_tiles=0):
+ def ativar_setor(nome):
+     """Troca o setor ativo: mundo, inimigos, minérios e passagens juntos."""
+     global setor_atual, world, enemies, itens, passagens_cenario, area_boss
+-    global curas, boss
++    global curas, boss, dialogo, npc_ao_alcance
+     setor_atual = setores[nome]
++    setores_visitados.add(nome)
++    dialogo = None
++    npc_ao_alcance = None
+     world = setor_atual.world
+     enemies = setor_atual.inimigos
+     itens = setor_atual.itens
+@@ -1097,6 +1107,7 @@ def carregar_recursos_jogo():
+     # estado de cada setor (minério coletado etc.) sobrevive às idas e voltas.
+     tela_carregamento(screen, 0.4, "Construindo setores...")
+     setores = carregar_setores(tiles, tile_fallback)
++    setores_visitados.clear()
+     ativar_setor(constants.SETOR_INICIAL)
+ 
+     tela_carregamento(screen, 0.7, "Carregando personagem...")
+@@ -1302,6 +1313,51 @@ def _checar_passagens():
+         transicao.iniciar(_resolver_passagem(perto.destino))
+ 
+ 
++def contexto_npcs():
++    """Progresso que as falas dos NPCs consultam (ver assets/levels/npcs.json)."""
++    total = sum(s.minerios_iniciais - len(s.itens) for s in setores.values())
++    s = setor_atual
++    return {"coletados_setor": s.minerios_iniciais - len(s.itens),
++            "total_setor": s.minerios_iniciais,
++            "coletados_total": total,
++            "visitados": frozenset(setores_visitados)}
++
++
++def _checar_npcs():
++    """
++    Conversa com NPCs pela mesma tecla das passagens (E / X). A passagem ao
++    alcance tem prioridade; a conversa não pausa o jogo, avança a cada E e
++    fecha no fim ou quando o jogador se afasta.
++    """
++    global npc_ao_alcance, dialogo
++    npc_ao_alcance = None
++    if setor_atual is None or not setor_atual.npcs.itens:
++        return
++    setor_atual.npcs.atualizar(player.rect)
++    if dialogo is not None:
++        if not dialogo["npc"].perto(player.rect, npcs_mod.AFASTAR_TILES):
++            dialogo = None
++        elif interagir_pressionado:
++            dialogo["i"] += 1
++            if dialogo["i"] >= len(dialogo["linhas"]):
++                dialogo = None
++        return
++    if passagem_ao_alcance is not None:
++        return
++    npc = setor_atual.npcs.ao_alcance(player.rect)
++    npc_ao_alcance = npc
++    if npc is not None and interagir_pressionado:
++        linhas, item = npc.conversar(contexto_npcs())
++        if item == "maca":
++            col, base = npc.ponto_de_entrega(world)
++            from src.setores import criar_cura
++            nova = criar_cura({"col": col, "row": base})
++            setor_atual.curas.append(nova)
++            sons.tocar("cura")
++        if linhas:
++            dialogo = {"npc": npc, "linhas": linhas, "i": 0}
++
++
+ # ── Ações dos botões ──────────────────────────────────────────────────────────
+ def luta_em_andamento():
+     return boss is not None and boss.em_luta
+@@ -1316,6 +1372,18 @@ def _checar_inicio_da_luta():
+         avisar("Desvie das BANANAS! Deixe o MINERIO te acertar e responda!", 5000)
+ 
+ 
++def _avisos_do_boss():
++    """Eventos que o Gorila sinaliza viram avisos na tela."""
++    if boss is None or not getattr(boss, "eventos", None):
++        return
++    for ev in boss.eventos:
++        if ev == "minerio_caido":
++            avisar("O Gorila esta tonto! PEGUE o minerio caido para dano extra!", 3000)
++        elif ev == "bonus":
++            avisar("Na cabeca! Dano extra no Gorila!", 1800)
++    boss.eventos.clear()
++
++
+ def reiniciar_luta_boss():
+     """
+     TENTAR DE NOVO (game over na arena): recomeça SÓ a luta. O setor da arena
+@@ -1650,6 +1718,7 @@ def atualizar_jogando(dt_ms):
+     player.update_invulnerable()
+     _checar_inicio_da_luta()
+     _atualizar_inimigos(area_ativa())
++    _avisos_do_boss()
+     if estado_jogo != "JOGANDO":       # boss derrotado -> VITORIA
+         return
+     if boss is not None and boss.minerio_atingiu_player is not None:
+@@ -1666,6 +1735,7 @@ def atualizar_jogando(dt_ms):
+         _fim_de_jogo()
+     else:
+         _checar_passagens()
++        _checar_npcs()
+ 
+ 
+ def passo_da_partida(dt_ms):
+@@ -1767,6 +1837,9 @@ def _desenhar_cena(area):
+         passagens_cenario.desenhar(
+             screen, camera_x, camera_y, pygame.time.get_ticks() / 1000.0
+         )
++    if setor_atual is not None and setor_atual.npcs.itens and player:
++        setor_atual.npcs.desenhar(screen, camera_x, camera_y, area, contexto_npcs(),
++                                  falando_com=dialogo["npc"] if dialogo else None)
+     for enemy in enemies:
+         if area.colliderect(enemy.area_desenho()):
+             enemy.draw(screen, camera_x, camera_y)
+@@ -1803,6 +1876,63 @@ def _desenhar_aviso_passagem():
+     screen.blit(aviso, caixa)
+ 
+ 
++def _desenhar_aviso_npc():
++    W, H = constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT
++    botao = "X" if gamepad.conectado else "E"
++    aviso = texto(fonte_titulo, f"{botao} - Conversar com {npc_ao_alcance.nome}",
++                  constants.YELLOW)
++    caixa = aviso.get_rect(center=(W // 2, H - sy(70)))
++    fundo = pygame.Surface((caixa.width + sx(28), caixa.height + sy(16)), pygame.SRCALPHA)
++    fundo.fill((0, 0, 0, 170))
++    screen.blit(fundo, fundo.get_rect(center=caixa.center))
++    screen.blit(aviso, caixa)
++
++
++def _quebrar_linhas(fonte, conteudo, largura):
++    palavras, linhas, atual = conteudo.split(), [], ""
++    for p in palavras:
++        teste = (atual + " " + p).strip()
++        if fonte.size(teste)[0] <= largura or not atual:
++            atual = teste
++        else:
++            linhas.append(atual)
++            atual = p
++    if atual:
++        linhas.append(atual)
++    return linhas
++
++
++def _desenhar_dialogo():
++    """Caixa de fala na base da tela: retrato, nome e a linha atual."""
++    W, H = constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT
++    npc = dialogo["npc"]
++    larg, alt = min(W - sx(40), sx(720)), sy(132)
++    caixa = pygame.Rect((W - larg) // 2, H - alt - sy(18), larg, alt)
++    fundo = pygame.Surface(caixa.size, pygame.SRCALPHA)
++    fundo.fill((14, 12, 20, 225))
++    screen.blit(fundo, caixa)
++    pygame.draw.rect(screen, (241, 187, 52), caixa, 3)
++    # retrato: o quadro parado do NPC, ampliado
++    retrato = npc.frames[0]
++    escala = (alt - sy(24)) / retrato.get_height()
++    retrato = pygame.transform.scale(
++        retrato, (max(1, int(retrato.get_width() * escala)), max(1, int(retrato.get_height() * escala))))
++    ret_r = retrato.get_rect(midleft=(caixa.left + sx(14), caixa.centery))
++    pygame.draw.rect(screen, (40, 52, 44), ret_r.inflate(sx(8), sy(8)))
++    screen.blit(retrato, ret_r)
++    x0 = ret_r.right + sx(18)
++    screen.blit(texto(fonte_titulo, npc.nome, constants.YELLOW), (x0, caixa.top + sy(12)))
++    y = caixa.top + sy(40)
++    for linha in _quebrar_linhas(fonte_titulo, dialogo["linhas"][dialogo["i"]], caixa.right - x0 - sx(16))[:3]:
++        screen.blit(texto(fonte_titulo, linha, constants.WHITE), (x0, y))
++        y += fonte_titulo.get_linesize()
++    botao = "X" if gamepad.conectado else "E"
++    fim = dialogo["i"] + 1 >= len(dialogo["linhas"])
++    dica = texto(fonte_titulo, f"{botao} - {'fechar' if fim else 'continuar'}  "
++                 f"({dialogo['i'] + 1}/{len(dialogo['linhas'])})", (200, 200, 200))
++    screen.blit(dica, dica.get_rect(bottomright=(caixa.right - sx(12), caixa.bottom - sy(8))))
++
++
+ def desenhar_hud_boss():
+     """Nome + barra de vida do boss (sincronizada com boss.vida) no topo."""
+     if boss is None or not boss.ativo:
+@@ -1819,9 +1949,43 @@ def desenhar_hud_boss():
+     for i in range(1, boss.VIDA_MAX):
+         mx = x + larg * i // boss.VIDA_MAX
+         pygame.draw.line(screen, (20, 10, 10), (mx, y + sy(21)), (mx, y + sy(34)), 1)
++    devolvidos = boss.VIDA_MAX - boss.vida
++    cont = texto(fonte_titulo, f"MINERIOS DEVOLVIDOS {devolvidos}/{boss.VIDA_MAX}", (230, 210, 170))
++    screen.blit(cont, cont.get_rect(midtop=(W // 2, y + sy(40))))
+     if boss.estado == "ATORDOADO":
+         st = texto(fonte_titulo, "ATORDOADO!", (255, 230, 120))
+-        screen.blit(st, st.get_rect(midtop=(W // 2, y + sy(40))))
++        screen.blit(st, st.get_rect(midtop=(W // 2, y + sy(62))))
++    agora = pygame.time.get_ticks()
++    # Faixa de troca de fase
++    anuncio = getattr(boss, "anuncio", None)
++    if anuncio and agora < anuncio[1]:
++        restante = anuncio[1] - agora
++        alpha = 255 if restante > 400 else int(255 * restante / 400)
++        faixa = pygame.Surface((W, sy(64)), pygame.SRCALPHA)
++        faixa.fill((90, 10, 10, min(200, alpha)))
++        yf = constants.SCREEN_HEIGHT // 2 - sy(120)
++        screen.blit(faixa, (0, yf))
++        msg = fonte_ui.render(anuncio[0], True, (255, 220, 90))
++        sombra = fonte_ui.render(anuncio[0], True, (40, 0, 0))
++        msg.set_alpha(alpha)
++        sombra.set_alpha(alpha)
++        r = msg.get_rect(center=(W // 2, yf + sy(32)))
++        screen.blit(sombra, r.move(3, 3))
++        screen.blit(msg, r)
++    # Balão de fala sobre o Gorila (posição no mundo -> tela)
++    fala = getattr(boss, "fala", None)
++    if fala and agora < fala[1]:
++        surf = texto(fonte_titulo, fala[0], (30, 20, 20))
++        cx = boss.rect.centerx - camera_x
++        topo = boss.rect.top - camera_y - sy(16)
++        caixa = surf.get_rect(midbottom=(cx, topo)).inflate(sx(18), sy(12))
++        caixa.clamp_ip(pygame.Rect(sx(6), sy(90), W - sx(12), constants.SCREEN_HEIGHT))
++        pygame.draw.rect(screen, (28, 20, 24), caixa.inflate(6, 6))
++        pygame.draw.rect(screen, (250, 246, 230), caixa)
++        bico_x = max(caixa.left + 12, min(caixa.right - 12, cx))
++        pygame.draw.polygon(screen, (250, 246, 230),
++                            [(bico_x - 7, caixa.bottom), (bico_x + 7, caixa.bottom), (bico_x, caixa.bottom + 10)])
++        screen.blit(surf, surf.get_rect(center=caixa.center))
+ 
+ 
+ def _desenhar_aviso_jogo():
+@@ -1852,6 +2016,10 @@ def desenhar_hud():
+     screen.blit(texto(fonte_titulo, dica, constants.WHITE), (sx(10), sy(10)))
+     if passagem_ao_alcance and estado_jogo == "JOGANDO" and not transicao.ativa:
+         _desenhar_aviso_passagem()
++    elif npc_ao_alcance and not dialogo and estado_jogo == "JOGANDO" and not transicao.ativa:
++        _desenhar_aviso_npc()
++    if dialogo and not transicao.ativa:
++        _desenhar_dialogo()
+     if player and player.alive:
+         desenhar_barra_vida(
+             screen, sx(10), sy(35), sx(200), sy(18),
+diff --git a/src/enemies/boss.py b/src/enemies/boss.py
+index e737a88..06f65ea 100644
+--- a/src/enemies/boss.py
++++ b/src/enemies/boss.py
+@@ -27,6 +27,16 @@ COMO A LUTA FUNCIONA (o que o jogador vê)
+   FASE 2    — com metade da vida: arremessos mais rápidos e o SALTO-PANCADA
+               (tremor + faixa vermelha no chão como aviso -> salto -> duas
+               ondas de choque correm pelo chão). Pule a onda.
++  FASE 3    — com 1/4 da vida: CHUVA DE BANANAS (cachos caem do alto; a
++              sombra marca o ponto de impacto antes) e arremessos ainda mais
++              rápidos.
++  REPOSIÇÃO — entre arremessos o Gorila SALTA para outro ponto da arena (o
++              pouso aparece marcado no chão; nunca perto do jogador).
++  PUNIÇÃO   — atordoado, ele derruba um minério do lado do jogador: pegue-o
++              e ele volta voando na cabeça do Gorila (dano extra). Atordoado,
++              o Gorila não machuca por contato.
++  TROCA DE FASE — faixa de anúncio na tela; ao acordar, um rugido (sem
++              ataque) antes de voltar ao combate.
+   DERROTA   — com 0 de vida: animação de queda; ao terminar o boss fica
+               `derrotado` e o main abre a tela de vitória.
+ 
+@@ -208,6 +218,103 @@ class OndaDeChoque:
+         pygame.draw.lines(surface, (120, 80, 30), False, pontos, 2)
+ 
+ 
++class CachoCaindo:
++    """Cacho de bananas da chuva (fase 3): sombra primeiro, queda depois."""
++
++    def __init__(self, x, y_inicio, y_chao, inicio_ms):
++        larg = int(constants.TILE_SIZE * 1.15)
++        self.image = carregar_imagem("itens", "cacho_banana.png",
++                                     (larg, int(larg * 539 / 670)))
++        self.rect = self.image.get_rect(midbottom=(int(x), int(y_inicio)))
++        self.pos_y = float(self.rect.y)
++        self.vy = 2.0
++        self.y_chao = y_chao              # topo do bloco onde ele cai
++        self.inicio_ms = inicio_ms        # antes disso só a sombra aparece
++
++    def update(self, player, agora):
++        """Devolve False quando o cacho deve sumir."""
++        if agora < self.inicio_ms:
++            return True
++        self.vy = min(self.vy + 0.5, constants.VEL_TERMINAL)
++        self.pos_y += self.vy
++        self.rect.y = int(self.pos_y)
++        if player is not None and player.alive and self.rect.colliderect(player.rect):
++            _aplicar_dano(player, constants.GORILA_CHUVA_DANO)
++            return False
++        return self.rect.bottom < self.y_chao
++
++    def draw(self, surface, camera_x, camera_y, agora):
++        # Sombra no ponto de impacto desde o primeiro frame: cresce conforme
++        # o cacho se aproxima, com um anel vermelho pulsante de aviso.
++        dist = max(0, self.y_chao - self.rect.bottom)
++        larg = int(self.rect.width * (1.0 - min(0.35, dist / 1200)) * 1.2)
++        sombra = pygame.Rect(0, 0, max(10, larg), max(6, larg // 3))
++        sombra.midbottom = (self.rect.centerx - camera_x, self.y_chao - camera_y + 2)
++        pygame.draw.ellipse(surface, (40, 20, 10), sombra)
++        anel = sombra.inflate(10, 6)
++        alpha = 120 + int(100 * (0.5 + 0.5 * math.sin(agora / 70)))
++        camada = pygame.Surface(anel.size, pygame.SRCALPHA)
++        pygame.draw.ellipse(camada, (230, 60, 40, alpha), camada.get_rect(), 3)
++        surface.blit(camada, anel)
++        if agora >= self.inicio_ms:
++            surface.blit(self.image, self.rect.move(-camera_x, -camera_y))
++
++
++class MinerioCaido:
++    """
++    Janela de punição: minério que o Gorila atordoado derruba no chão. O
++    jogador encosta -> ele voa até o Gorila e causa dano extra.
++    """
++
++    def __init__(self, dono, x, chao_y, tipo):
++        self.dono = dono
++        tam = int(constants.GORILA_PROJETIL_SIZE * 1.15)
++        self.image = carregar_imagem("itens", ARQUIVOS_MINERIO[tipo], (tam, tam))
++        self.rect = self.image.get_rect(midbottom=(int(x), int(chao_y)))
++        self.pos_x, self.pos_y = float(self.rect.x), float(self.rect.y)
++        self.estado = "no_chao"           # no_chao | voando
++
++    def update(self, player):
++        """Devolve False quando some (acertou o Gorila)."""
++        if self.estado == "no_chao":
++            if player is not None and player.alive and self.rect.colliderect(player.rect):
++                self.estado = "voando"
++                sons.tocar("acerto")
++            return True
++        dx = self.dono.rect.centerx - self.rect.centerx
++        dy = self.dono.rect.centery - self.rect.centery
++        dist = math.hypot(dx, dy) or 1.0
++        v = constants.GORILA_PROJETIL_SPEED_F2 * 1.6
++        self.pos_x += dx / dist * v
++        self.pos_y += dy / dist * v
++        self.rect.topleft = (round(self.pos_x), round(self.pos_y))
++        if self.rect.colliderect(self.dono.rect) or dist < v:
++            self.dono.levar_minerio_bonus()
++            return False
++        return True
++
++    def draw(self, surface, camera_x, camera_y, agora):
++        dy = 0
++        if self.estado == "no_chao":
++            dy = int(4 * math.sin(agora / 120))
++            # brilho pulsante: "pegue-me"
++            r = self.rect.width // 2 + 6 + int(3 * math.sin(agora / 90))
++            halo = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
++            pygame.draw.circle(halo, (255, 230, 120, 90), (r, r), r)
++            surface.blit(halo, (self.rect.centerx - r - camera_x, self.rect.centery - r - camera_y + dy))
++        surface.blit(self.image, self.rect.move(-camera_x, -camera_y + dy))
++
++
++FALAS = {
++    "intro": "UUUH! Quem ousa subir na minha copa?",
++    "fase2": "GRRR! Agora voce me irritou!",
++    "fase3": "MINHAS BANANAS! TODAS ELAS!",
++    "atordoado": "Ugh... minha cabeca...",
++    "derrota": "Uhh... a jazida... e sua...",
++}
++ANUNCIOS = {2: "FASE 2 - O GORILA ESTA FURIOSO!", 3: "FASE 3 - CHUVA DE BANANAS!"}
++
++
+ class Gorila(Enemy):
+     PASTA_SPRITES = "inimigos"
+     SPRITE_FACES_LEFT = False
+@@ -251,17 +358,45 @@ class Gorila(Enemy):
+         self.obstaculos_proximos = lambda rect: []
+         self.limites = pygame.Rect(0, 0, 10 ** 6, 10 ** 6)
+         self.chao_y = None
++        # v1.0 — movimento, fase 3, feedback, janela de punição
++        self.zona_luta = None         # Rect da área de luta (setores.criar_boss)
++        self._world = None
++        self._faixa_x = None          # (min, max) do centro nos saltos: chão livre
++        self.pos_x = float(self.rect.x)
++        self.salto = None             # None ou {etapa, ate, alvo_x, vx}
++        self._arremessos_desde_salto = 0
++        self.chuva = None             # None ou {etapa, ate}
++        self.cachos = []
++        self.proxima_chuva = 0
++        self.minerio_caido = None
++        self.anuncio = None           # (texto, ate_ms) — faixa na tela (main)
++        self.fala = None              # (texto, ate_ms) — balão sobre o Gorila (main)
++        self._rugir_ao_acordar = False
++        self._ja_atordoado = False
++        self.eventos = []             # avisos para o main: "minerio_caido", "bonus"
+ 
+     # ── ligação com o setor/main ──────────────────────────────────────────
+     def conectar(self, world, limites_px):
+         """Chamado pelo setor: de onde vêm os obstáculos e até onde ir."""
+         self.obstaculos_proximos = world.obstaculos_proximos
+         self.limites = pygame.Rect(limites_px)
++        self._world = world
+ 
+     @property
+     def fase(self):
++        if self.vida <= self.VIDA_MAX // 4:
++            return 3
+         return 2 if self.vida <= self.VIDA_MAX // 2 else 1
+ 
++    # ── avisos para o main (tolerante a instâncias montadas sem __init__) ──
++    def _evento(self, nome):
++        if not hasattr(self, "eventos"):
++            self.eventos = []
++        self.eventos.append(nome)
++
++    def _falar(self, chave, ms=2600):
++        self.fala = (FALAS[chave], pygame.time.get_ticks() + ms)
++
+     @property
+     def em_luta(self):
+         return self.ativo and self.estado != "DERROTA" and not self.derrotado
+@@ -275,24 +410,37 @@ class Gorila(Enemy):
+         self.intro_ate = agora + constants.GORILA_INTRO_MS
+         self.proximo_ataque = self.intro_ate + 300
+         self.proxima_pancada = self.intro_ate + constants.GORILA_PANCADA_INTERVALO
++        self.proxima_chuva = self.intro_ate + constants.GORILA_CHUVA_INTERVALO
+         self.tremor = 8
+         sons.tocar("rugido")
++        self._falar("intro", constants.GORILA_INTRO_MS + 900)
+ 
+     # ── combate (pontos de extensão do Enemy) ─────────────────────────────
+     def receber_dano(self, quantidade):
+         """Sobrescreve o Enemy: a derrota tem animação antes do `derrotado`."""
+         if self.estado == "DERROTA" or self.derrotado:
+             return False
++        fase_antes = self.fase
+         self.vida = max(0, self.vida - quantidade)
+-        self.flash_ate = pygame.time.get_ticks() + 250
++        agora = pygame.time.get_ticks()
++        self.flash_ate = agora + 250
+         sons.tocar("boss_dano")
+         if self.vida == 0:
+             self.estado = "DERROTA"
+-            self.derrota_ate = pygame.time.get_ticks() + self.DURACAO_DERROTA_MS
++            self.derrota_ate = agora + self.DURACAO_DERROTA_MS
+             self.projeteis = [p for p in self.projeteis if p.estado == "aguardando_resposta"]
+             self.ondas = []
+             self.preparando = self.pancada = None
++            self.salto = self.chuva = self.minerio_caido = None
++            self.cachos = []
++            self._falar("derrota", self.DURACAO_DERROTA_MS + 400)
+             return True
++        if self.fase > fase_antes:
++            # Troca de fase: faixa na tela agora, rugido quando acordar.
++            self.anuncio = (ANUNCIOS[self.fase], agora + constants.GORILA_ANUNCIO_MS)
++            self._falar(f"fase{self.fase}", constants.GORILA_ANUNCIO_MS)
++            self._rugir_ao_acordar = True
++            self.tremor = 14
+         return False
+ 
+     def levar_minerio(self):
+@@ -303,11 +451,42 @@ class Gorila(Enemy):
+             self.atordoado_ate = pygame.time.get_ticks() + constants.GORILA_ATORDOADO_MS
+             self.preparando = None
+             self.pancada = None
+-            self.tremor = 5
++            self.salto = None
++            self.chuva = None
++            self.tremor = max(self.tremor, 5)
++            if not getattr(self, "_ja_atordoado", True) and not getattr(self, "anuncio", None):
++                self._falar("atordoado")
++            self._ja_atordoado = True
++            self._derrubar_minerio()
++
++    def _derrubar_minerio(self):
++        """Janela de punição: um minério cai do lado do jogador (se houver chão ali)."""
++        rect = getattr(self, "rect", None)
++        chao = getattr(self, "chao_y", None)
++        if rect is None or chao is None:
++            return
++        T = constants.TILE_SIZE
++        lado = getattr(self, "direcao", 1) or 1
++        x = rect.centerx + lado * (rect.width // 2 + int(1.5 * T))
++        faixa = getattr(self, "_faixa_x", None)
++        if faixa:
++            # o minério também precisa cair no chão livre (não em plataforma)
++            x = max(faixa[0] - rect.width // 2, min(faixa[1] + rect.width // 2, x))
++        tipo = getattr(self, "_tipo_minerio_ciclo", "cobre")
++        self.minerio_caido = MinerioCaido(self, x, chao, tipo)
++        self._evento("minerio_caido")
++
++    def levar_minerio_bonus(self):
++        """O minério caído, pego pelo jogador, acertou o Gorila: dano extra."""
++        self.receber_dano(constants.GORILA_DANO_BONUS)
++        self.tremor = max(self.tremor, 6)
++        self._evento("bonus")
+ 
+     def check_player_collision(self, player):
+         if not self.ativo or self.estado == "DERROTA" or not self.rect.colliderect(player.rect):
+             return False
++        if self.estado == "ATORDOADO":
++            return False     # atordoado não machuca: a janela de punição é segura
+         if player.rect.centerx < self.rect.centerx:
+             player.pos_x -= constants.KNOCKBACK_X
+         else:
+@@ -378,6 +557,17 @@ class Gorila(Enemy):
+                     self.rect.top = obs.bottom
+                 self.vel_y = 0.0
+                 self.pos_y = float(self.rect.y)
++        if not self.on_ground and self.vel_y >= 0:
++            # Parado no chão a gravidade soma menos de 1 px e o int() esconde
++            # o movimento: sem esta sonda o on_ground alternava a cada frame
++            # (e o salto-pancada só podia começar em frames alternados).
++            pe = self.rect.move(0, 1)
++            if any(pe.colliderect(o) for o in self.obstaculos_proximos(pe)):
++                self.on_ground = True
++                self.vel_y = 0.0
++                self.pos_y = float(self.rect.y)
++                if self.chao_y is None:
++                    self.chao_y = self.rect.bottom   # nasce já apoiado no chão
+ 
+     # ── atualização ───────────────────────────────────────────────────────
+     def update(self, obstacles, player=None):
+@@ -407,23 +597,44 @@ class Gorila(Enemy):
+             if agora >= self.atordoado_ate:
+                 self.estado = "COMBATE"
+                 self.proximo_ataque = agora + 600
++                if self.minerio_caido is not None and self.minerio_caido.estado == "no_chao":
++                    self.minerio_caido = None      # não pegou a tempo: some
++                if self._rugir_ao_acordar:
++                    self._rugir_ao_acordar = False
++                    self.proximo_ataque = agora + constants.GORILA_RUGIDO_FASE_MS
++                    self.proxima_pancada = max(self.proxima_pancada, self.proximo_ataque + 1500)
++                    self.proxima_chuva = max(self.proxima_chuva, self.proximo_ataque + 800)
++                    self.tremor = 10
++                    sons.tocar("rugido")
+             self._atualizar_projeteis(player)
+             return
+ 
+         # COMBATE
+         if self.pancada:
+             self._atualizar_pancada(agora)
++        elif self.salto:
++            self._atualizar_salto(agora)
++        elif self.chuva:
++            self._atualizar_chuva(agora)
+         elif self.preparando:
+             tipo, fim = self.preparando
+             if agora >= fim:
+                 self.preparando = None
+                 if player is not None and player.alive:
+                     self._lancar(player, tipo)
+-                intervalo = (constants.GORILA_INTERVALO_ATAQUE if self.fase == 1
+-                             else constants.GORILA_INTERVALO_ATAQUE_F2)
++                    self._arremessos_desde_salto += 1
++                intervalo = (constants.GORILA_INTERVALO_ATAQUE, constants.GORILA_INTERVALO_ATAQUE_F2,
++                             constants.GORILA_INTERVALO_ATAQUE_F3)[self.fase - 1]
+                 self.proximo_ataque = agora + intervalo
+-        elif self.fase == 2 and agora >= self.proxima_pancada and self.on_ground:
++        elif self.fase >= 2 and agora >= self.proxima_pancada and self.on_ground:
+             self.pancada = {"etapa": "aviso", "ate": agora + constants.GORILA_PANCADA_AVISO_MS}
++        elif self.fase == 3 and agora >= self.proxima_chuva and self.on_ground:
++            self.chuva = {"etapa": "aviso", "ate": agora + constants.GORILA_CHUVA_AVISO_MS}
++            self.tremor = 6
++            sons.tocar("rugido")
++        elif (self._arremessos_desde_salto >= constants.GORILA_SALTO_A_CADA[self.fase - 1]
++              and self.on_ground and player is not None and self._iniciar_salto(player, agora)):
++            pass
+         elif agora >= self.proximo_ataque and player is not None and player.alive:
+             tipo = self._proximo_tipo_projetil()
+             self.preparando = (tipo, agora + constants.GORILA_POSE_ARREMESSO)
+@@ -431,6 +642,112 @@ class Gorila(Enemy):
+         self._atualizar_projeteis(player)
+         self._atualizar_animacao()
+ 
++    # ── salto de reposição ────────────────────────────────────────────────
++    def _calcular_faixa_x(self):
++        """
++        Faixa de x (centro do Gorila) onde ele pode pousar: o chão livre em
++        volta da posição inicial, sem bloco na linha logo acima do chão (as
++        plataformas baixas da arena ficam de fora) — lida da grade real.
++        """
++        w = self._world
++        if w is None or self.chao_y is None:
++            return None
++        T = constants.TILE_SIZE
++        linha = self.chao_y // T - 1
++        col = self.rect.centerx // T
++        livre = lambda c: (0 <= c < w.colunas and w._solidos[linha][c] is None
++                           and w._solidos[linha + 1][c] is not None)
++        c0 = c1 = col
++        while livre(c0 - 1):
++            c0 -= 1
++        while livre(c1 + 1):
++            c1 += 1
++        meia = self.rect.width // 2
++        x_min, x_max = c0 * T + meia + T // 4, (c1 + 1) * T - meia - T // 4
++        if self.zona_luta is not None:
++            x_min = max(x_min, self.zona_luta.left + meia + T)
++            x_max = min(x_max, self.zona_luta.right - meia - T)
++        return (x_min, x_max) if x_max > x_min else None
++
++    def _iniciar_salto(self, player, agora):
++        if self._faixa_x is None:
++            self._faixa_x = self._calcular_faixa_x()
++        if not self._faixa_x:
++            return False
++        T = constants.TILE_SIZE
++        x_min, x_max = self._faixa_x
++        candidatos = [x for x in range(int(x_min), int(x_max) + 1, T // 2)
++                      if abs(x - player.rect.centerx) >= constants.GORILA_SALTO_DIST_PLAYER * T
++                      and abs(x - self.rect.centerx) >= 3 * T]
++        if not candidatos:
++            self._arremessos_desde_salto = 0
++            return False
++        candidatos.sort(key=lambda x: -abs(x - player.rect.centerx))
++        alvo = random.choice(candidatos[:max(1, len(candidatos) // 3)])
++        self.salto = {"etapa": "aviso", "ate": agora + constants.GORILA_SALTO_AVISO_MS, "alvo_x": alvo}
++        self._arremessos_desde_salto = 0
++        return True
++
++    def _atualizar_salto(self, agora):
++        sl = self.salto
++        if sl["etapa"] == "aviso" and agora >= sl["ate"]:
++            v0 = constants.SPEED_JUMP * 1.45
++            quadros = 2 * v0 / constants.GRAVITY
++            sl["vx"] = (sl["alvo_x"] - self.rect.centerx) / quadros
++            sl["etapa"] = "voo"
++            self.pos_x = float(self.rect.x)
++            self.vel_y = -v0
++            self.on_ground = False
++            sons.tocar("arremesso")
++        elif sl["etapa"] == "voo":
++            restante = sl["alvo_x"] - self.rect.centerx
++            passo = sl["vx"] if abs(restante) > abs(sl["vx"]) else restante
++            self.pos_x += passo
++            self.rect.x = int(round(self.pos_x))
++            if self.on_ground and self.vel_y == 0 and abs(restante) <= abs(sl["vx"]) + 1:
++                self.rect.centerx = int(sl["alvo_x"])
++                self.pos_x = float(self.rect.x)
++                self.salto = None
++                self.tremor = 5
++                sons.tocar("pancada")
++                self.proximo_ataque = max(self.proximo_ataque, agora + 450)
++
++    # ── chuva de bananas (fase 3) ─────────────────────────────────────────
++    def _chao_em(self, x):
++        """Topo do primeiro bloco sólido abaixo do teto da arena na coluna de x."""
++        w = self._world
++        T = constants.TILE_SIZE
++        if w is None:
++            return self.chao_y
++        c = int(x) // T
++        topo = (self.zona_luta.top // T) if self.zona_luta is not None else 0
++        for r in range(max(0, topo), w.linhas):
++            if w._solidos[r][c] is not None:
++                return r * T
++        return self.chao_y
++
++    def _atualizar_chuva(self, agora):
++        ch = self.chuva
++        if ch["etapa"] == "aviso" and agora >= ch["ate"]:
++            T = constants.TILE_SIZE
++            zona = self.zona_luta or self.limites
++            esp = constants.GORILA_CHUVA_ESPACO_TILES * T
++            inicio = zona.left + T + random.randrange(0, esp, T // 2)
++            xs = list(range(inicio, zona.right - T, esp))
++            random.shuffle(xs)
++            # nasce 9 tiles acima do chão: a queda inteira fica dentro da câmera
++            y0 = max(zona.top - T, (self.chao_y or zona.bottom) - 9 * T)
++            for i, x in enumerate(xs):
++                self.cachos.append(CachoCaindo(x, y0, self._chao_em(x),
++                                               agora + 450 + i * constants.GORILA_CHUVA_ATRASO_MS))
++            ch["etapa"] = "queda"
++            ch["ate"] = agora + 450 + len(xs) * constants.GORILA_CHUVA_ATRASO_MS + 900
++            self.tremor = 8
++        elif ch["etapa"] == "queda" and agora >= ch["ate"]:
++            self.chuva = None
++            self.proxima_chuva = agora + constants.GORILA_CHUVA_INTERVALO
++            self.proximo_ataque = max(self.proximo_ataque, agora + 400)
++
+     def _atualizar_pancada(self, agora):
+         p = self.pancada
+         if p["etapa"] == "aviso" and agora >= p["ate"]:
+@@ -454,11 +771,19 @@ class Gorila(Enemy):
+     def _atualizar_projeteis(self, player):
+         self.projeteis = [p for p in self.projeteis if p.update(player)]
+         self.ondas = [o for o in self.ondas if o.update(player)]
++        agora = pygame.time.get_ticks()
++        if getattr(self, "cachos", None):
++            self.cachos = [c for c in self.cachos if c.update(player, agora)]
++        caido = getattr(self, "minerio_caido", None)
++        if caido is not None and not caido.update(player):
++            self.minerio_caido = None
+ 
+     def limpar_ataques(self):
+         """Some com bananas/ondas em voo (usado ao reiniciar a luta)."""
+         self.projeteis = []
+         self.ondas = []
++        self.cachos = []
++        self.minerio_caido = None
+         self.minerio_atingiu_player = None
+ 
+     def area_desenho(self):
+@@ -491,6 +816,20 @@ class Gorila(Enemy):
+             faixa.fill((230, 40, 40, alpha))
+             surface.blit(faixa, (self.rect.centerx - faixa.get_width() // 2 - camera_x,
+                                  self.rect.bottom - 8 - camera_y))
++        elif self.salto and self.salto["etapa"] == "aviso":
++            # agachado (pose achatada) + marca do pouso no chão
++            base = _pose(POSE_PREPARO[None], h, inverter)
++            imagem = pygame.transform.scale(base, (int(base.get_width() * 1.08), int(h * 0.86)))
++            alvo = pygame.Rect(0, 0, self.rect.width + 16, 14)
++            alvo.midbottom = (int(self.salto["alvo_x"]) - camera_x, self.rect.bottom - camera_y + 4)
++            alpha = 110 + int(90 * (0.5 + 0.5 * math.sin(agora / 60)))
++            marca = pygame.Surface(alvo.size, pygame.SRCALPHA)
++            pygame.draw.ellipse(marca, (255, 140, 40, alpha), marca.get_rect(), 3)
++            surface.blit(marca, alvo)
++        elif self.salto:
++            imagem = _pose(POSE_PREPARO[None], h, inverter)
++        elif self.chuva and self.chuva["etapa"] == "aviso":
++            imagem = _pose(POSE_PREPARO[None], h, inverter)
+         elif self.preparando:
+             imagem = _pose(POSE_PREPARO[self.preparando[0]], h, inverter)
+ 
+@@ -500,7 +839,9 @@ class Gorila(Enemy):
+             desenhada = quadros[min(self.frame_atual, len(quadros) - 1)]
+             pos = (self.rect.x - camera_x, self.rect.y - camera_y)
+         else:
+-            tremor = (agora // 40) % 3 - 1 if self.pancada and self.pancada["etapa"] == "aviso" else 0
++            tremendo = ((self.pancada and self.pancada["etapa"] == "aviso")
++                        or (self.chuva and self.chuva["etapa"] == "aviso"))
++            tremor = (agora // 40) % 3 - 1 if tremendo else 0
+             x = self.rect.centerx - imagem.get_width() // 2 - camera_x + tremor * 2
+             y = self.rect.bottom - imagem.get_height() - camera_y + dy
+             surface.blit(imagem, (x, y))
+@@ -512,7 +853,29 @@ class Gorila(Enemy):
+             brilho = pygame.mask.from_surface(desenhada).to_surface(
+                 setcolor=(255, 255, 255, 110), unsetcolor=(0, 0, 0, 0))
+             surface.blit(brilho, pos)
++        if self.estado == "ATORDOADO":
++            _estrelas(surface, self.rect.centerx - camera_x, pos[1] + 6, agora)
+         for o in self.ondas:
+             o.draw(surface, camera_x, camera_y)
++        if self.minerio_caido is not None:
++            self.minerio_caido.draw(surface, camera_x, camera_y, agora)
++        for c in self.cachos:
++            c.draw(surface, camera_x, camera_y, agora)
+         for p in self.projeteis:
+             p.draw(surface, camera_x, camera_y)
++
++
++def _estrelas(surface, cx, y, agora):
++    """Três estrelas girando sobre a cabeça: o Gorila está atordoado."""
++    for i in range(3):
++        ang = agora / 260 + i * 2 * math.pi / 3
++        x = cx + math.cos(ang) * 34
++        yy = y + math.sin(ang) * 9
++        r = 8 if math.sin(ang) > 0 else 6
++        pts = []
++        for k in range(10):
++            a = -math.pi / 2 + k * math.pi / 5
++            rr = r if k % 2 == 0 else r * 0.45
++            pts.append((x + math.cos(a) * rr, yy + math.sin(a) * rr))
++        pygame.draw.polygon(surface, (255, 226, 90), pts)
++        pygame.draw.polygon(surface, (120, 80, 20), pts, 1)
+diff --git a/src/npcs.py b/src/npcs.py
+new file mode 100644
+index 0000000..0a70046
+--- /dev/null
++++ b/src/npcs.py
+@@ -0,0 +1,241 @@
++"""
++NPCs: personagens que conversam com a Areninha.
++
++Os dados (posição, falas, recompensa) vêm de assets/levels/npcs.json — a
++equipe edita as falas sem tocar em código. A arte vem de assets/images/npcs/
++(pixel art gerada por ferramentas/gerar_sprites_npc.py) ou de uma imagem já
++existente em assets/images/personagens/.
++
++Papel no jogo:
++  * GUIA       — explicam mecânicas e apontam caminhos;
++  * NARRATIVA  — ligam a fase à história das cutscenes (a fábrica sem
++                 minério); as falas mudam com o progresso;
++  * RECOMPENSA — alguns entregam uma maçã (cura) uma vez por partida, quando
++                 o jogador já coletou minérios suficientes no setor.
++
++NPC não tem colisão, não é inimigo e não abre pergunta. O jogador conversa
++apertando E (ou X no controle) perto dele; a conversa não pausa o jogo e se
++fecha sozinha se ele se afastar. Uma passagem ao alcance tem prioridade
++sobre a conversa (os NPCs são posicionados longe delas — ver validar_npcs).
++"""
++import json
++
++import pygame
++
++import constants
++from utils import ASSETS_PATH, carregar_imagem
++
++ESCALA_NPC = 2                 # 24x36 nativo -> 48x72 na tela (SCALE 3)
++ALTURA_ARTE_EXISTENTE = 72     # px na tela para artes de personagens/
++ALCANCE_X_TILES = 1.6          # distância horizontal para conversar
++AFASTAR_TILES = 4.0            # longe disso a conversa fecha
++QUADRO_MS = 650                # respiração
++PISCAR_CADA_MS = 3200
++PISCAR_DURA_MS = 140
++
++_cache_frames = {}
++
++
++def _carregar_frames(sprite):
++    if sprite in _cache_frames:
++        return _cache_frames[sprite]
++    frames = []
++    if sprite.startswith("personagens:"):
++        arquivo = sprite.split(":", 1)[1]
++        img = carregar_imagem("personagens", arquivo)
++        rects = pygame.mask.from_surface(img).get_bounding_rects()
++        if rects:
++            img = img.subsurface(rects[0].unionall(rects[1:])).copy()
++        h = ALTURA_ARTE_EXISTENTE
++        w = max(1, round(img.get_width() * h / img.get_height()))
++        img = pygame.transform.smoothscale(img, (w, h))
++        frames = [img, img, img]
++    else:
++        for i in range(3):
++            img = carregar_imagem("npcs", f"npc_{sprite}_{i}.png")
++            frames.append(pygame.transform.scale(
++                img, (img.get_width() * ESCALA_NPC, img.get_height() * ESCALA_NPC)))
++    _cache_frames[sprite] = frames
++    return frames
++
++
++def _condicoes_ok(bloco, ctx):
++    if ctx["coletados_setor"] < bloco.get("min_coletados_setor", 0):
++        return False
++    if "max_coletados_setor" in bloco and ctx["coletados_setor"] > bloco["max_coletados_setor"]:
++        return False
++    if ctx["coletados_total"] < bloco.get("min_coletados_total", 0):
++        return False
++    if "max_coletados_total" in bloco and ctx["coletados_total"] > bloco["max_coletados_total"]:
++        return False
++    if "visitou" in bloco and bloco["visitou"] not in ctx.get("visitados", ()):
++        return False
++    return True
++
++
++class NPC:
++    def __init__(self, dados):
++        self.id = dados["id"]
++        self.nome = dados["nome"]
++        self.coluna = dados["coluna"]
++        self.base = dados["base"]
++        self.falas = dados["falas"]
++        self.recompensa = dados.get("recompensa")
++        self.recompensa_entregue = False
++        self.frames = _carregar_frames(dados["sprite"])
++        self.frames_esq = [pygame.transform.flip(f, True, False) for f in self.frames]
++        T = constants.TILE_SIZE
++        self.rect = self.frames[0].get_rect(midbottom=(self.coluna * T + T // 2, self.base * T))
++        self.olhando_esquerda = False
++        self._ultimo_bloco_visto = None
++        self._fase_anim = (self.coluna * 137) % QUADRO_MS   # NPCs não respiram em sincronia
++
++    # ── conteúdo ─────────────────────────────────────────────────────────
++    def _bloco(self, ctx):
++        for i, bloco in enumerate(self.falas):
++            if _condicoes_ok(bloco, ctx):
++                return i, bloco
++        return None, None
++
++    def recompensa_pronta(self, ctx):
++        return (self.recompensa is not None and not self.recompensa_entregue
++                and _condicoes_ok(self.recompensa, ctx))
++
++    def tem_novidade(self, ctx):
++        """Algo que o jogador ainda não ouviu (mostra o '!' sobre a cabeça)."""
++        i, _ = self._bloco(ctx)
++        return i != self._ultimo_bloco_visto or self.recompensa_pronta(ctx)
++
++    def conversar(self, ctx):
++        """
++        Linhas desta conversa. Se a recompensa estiver pronta, ela é marcada
++        como entregue e as falas dela vêm primeiro; devolve (linhas, item|None).
++        """
++        i, bloco = self._bloco(ctx)
++        self._ultimo_bloco_visto = i
++        linhas = []
++        item = None
++        if self.recompensa_pronta(ctx):
++            self.recompensa_entregue = True
++            item = self.recompensa.get("item")
++            linhas += self.recompensa.get("linhas", [])
++        if bloco:
++            linhas += bloco["linhas"]
++        return [l.format(**ctx) for l in linhas], item
++
++    # ── jogo ─────────────────────────────────────────────────────────────
++    def perto(self, rect_player, alcance_tiles=ALCANCE_X_TILES):
++        T = constants.TILE_SIZE
++        return (abs(rect_player.centerx - self.rect.centerx) <= alcance_tiles * T
++                and abs(rect_player.bottom - self.rect.bottom) <= 1.5 * T)
++
++    def olhar_para(self, rect_player):
++        if abs(rect_player.centerx - self.rect.centerx) <= 6 * constants.TILE_SIZE:
++            self.olhando_esquerda = rect_player.centerx < self.rect.centerx
++
++    def ponto_de_entrega(self, world):
++        """Célula (coluna, linha_do_apoio) ao lado do NPC onde a maçã cai."""
++        T = constants.TILE_SIZE
++        for dc in ((-1, 1) if self.olhando_esquerda else (1, -1)) + (-2, 2):
++            c = self.coluna + dc
++            if 0 <= c < world.colunas and world._solidos[self.base][c] is not None \
++                    and world._solidos[self.base - 1][c] is None:
++                return c, self.base
++        return self.coluna, self.base
++
++    def desenhar(self, surface, camera_x, camera_y, agora, novidade=False, falando=False):
++        frames = self.frames_esq if self.olhando_esquerda else self.frames
++        t = agora + self._fase_anim
++        quadro = 1 if (t // QUADRO_MS) % 2 else 0
++        if t % PISCAR_CADA_MS < PISCAR_DURA_MS:
++            quadro = 2
++        img = frames[quadro]
++        pos = self.rect.move(-camera_x, -camera_y)
++        surface.blit(img, pos)
++        if falando or novidade:
++            _balao(surface, pos.centerx, pos.top - 6, "..." if falando else "!", agora)
++
++
++def _balao(surface, cx, base_y, simbolo, agora):
++    """Balãozinho em pixel art sobre a cabeça: '!' (novidade) ou '...' (falando)."""
++    s = 3
++    sobe = 2 if (agora // 300) % 2 and simbolo == "!" else 0
++    w, h = (7 * s, 8 * s) if simbolo == "!" else (11 * s, 7 * s)
++    x, y = cx - w // 2, base_y - h - sobe
++    pygame.draw.rect(surface, (28, 20, 24), (x - s, y - s, w + 2 * s, h + 2 * s))
++    pygame.draw.rect(surface, (250, 246, 230), (x, y, w, h))
++    pygame.draw.polygon(surface, (28, 20, 24), [(cx - 2 * s, y + h), (cx + 2 * s, y + h), (cx, y + h + 3 * s)])
++    pygame.draw.polygon(surface, (250, 246, 230), [(cx - s, y + h), (cx + s, y + h), (cx, y + h + 2 * s)])
++    cor = (220, 60, 40)
++    if simbolo == "!":
++        pygame.draw.rect(surface, cor, (cx - s // 2 - 1, y + s, s + 1, 4 * s))
++        pygame.draw.rect(surface, cor, (cx - s // 2 - 1, y + 6 * s, s + 1, s))
++    else:
++        for i in range(3):
++            pygame.draw.rect(surface, (60, 60, 70), (x + 2 * s + i * 3 * s, y + 3 * s, s, s))
++
++
++class GerenciadorNPCs:
++    """Os NPCs de um setor. Estado (recompensa entregue) dura a partida."""
++
++    def __init__(self, nome_setor, caminho=None):
++        caminho = caminho or (ASSETS_PATH / "levels" / "npcs.json")
++        self.itens = []
++        try:
++            dados = json.loads(caminho.read_text(encoding="utf-8"))
++        except (OSError, ValueError) as e:
++            print(f"Aviso: NPCs nao carregados ({e})")
++            return
++        for d in dados.get(nome_setor, []):
++            try:
++                self.itens.append(NPC(d))
++            except (KeyError, FileNotFoundError, pygame.error) as e:
++                print(f"Aviso: NPC {d.get('id', '?')} ignorado ({e})")
++
++    def __len__(self):
++        return len(self.itens)
++
++    def ao_alcance(self, rect_player):
++        perto = [n for n in self.itens if n.perto(rect_player)]
++        return min(perto, key=lambda n: abs(n.rect.centerx - rect_player.centerx)) if perto else None
++
++    def atualizar(self, rect_player):
++        for n in self.itens:
++            n.olhar_para(rect_player)
++
++    def desenhar(self, surface, camera_x, camera_y, area, ctx, falando_com=None):
++        agora = pygame.time.get_ticks()
++        for n in self.itens:
++            if area.colliderect(n.rect):
++                n.desenhar(surface, camera_x, camera_y, agora,
++                           novidade=n.tem_novidade(ctx), falando=n is falando_com)
++
++
++def validar_npcs(nome_setor, grade, npcs):
++    """
++    Regras de posicionamento (usadas pelos testes):
++      * pisa num bloco sólido e tem 2 células livres acima;
++      * a >= 4 colunas de passagens e chegadas (a passagem tem prioridade na tecla E);
++      * a >= 2 colunas de minérios e inimigos de chão no mesmo nível.
++    Devolve lista de problemas (vazia = ok).
++    """
++    S = constants.SOLID_TILES
++    problemas = []
++    marcas = [(c, r, v) for r, linha in enumerate(grade) for c, v in enumerate(linha)
++              if v in constants.TILES_MARCADORES]
++    for n in npcs:
++        c, b = n.coluna, n.base
++        if not (0 < b < len(grade) and 0 <= c < len(grade[0])) or grade[b][c] not in S:
++            problemas.append(f"{nome_setor}/{n.id}: sem chao em (col {c}, linha {b})")
++            continue
++        if any(grade[b - k][c] in S for k in (1, 2)):
++            problemas.append(f"{nome_setor}/{n.id}: sem espaco livre acima")
++        for mc, mr, v in marcas:
++            if abs(mr - (b - 1)) > 3:
++                continue
++            d = abs(mc - c)
++            if (v in constants.TILES_PASSAGEM or v in constants.TILES_CHEGADA) and d < 4:
++                problemas.append(f"{nome_setor}/{n.id}: a {d} col da passagem/chegada {v}")
++            elif v in (constants.TILE_MINERIO, constants.TILE_MOB_COBRA) and d < 2:
++                problemas.append(f"{nome_setor}/{n.id}: colado no marcador {v} (col {mc})")
++    return problemas
+diff --git a/src/setores.py b/src/setores.py
+index 700d51f..e5c7b73 100644
+--- a/src/setores.py
++++ b/src/setores.py
+@@ -24,6 +24,7 @@ from src.itens.item_cura import ItemCura
+ from src.itens.minerio_cobre import minerio_cobre
+ from src.passagens import GerenciadorPassagens
+ from src.decoracoes import DecoracaoSetor
++from src.npcs import GerenciadorNPCs
+ from src.estruturas_cenario import EstruturasCenario
+ from src.world import World
+ from utils import ASSETS_PATH, ErroMapa, carregar_nivel_csv, extrair_marcadores
+@@ -57,6 +58,8 @@ class Setor:
+         self.inimigos = [criar_inimigo(d) for d in marcadores["inimigos"]]
+         self.inimigos = [e for e in self.inimigos if e is not None]
+         self.itens = [criar_minerio(d) for d in marcadores["minerios"]]
++        self.minerios_iniciais = len(self.itens)
++        self.npcs = GerenciadorNPCs(nome)
+         self.curas = [criar_cura(d) for d in marcadores["curas"]]
+         self._curas_iniciais = [dict(d) for d in marcadores["curas"]]
+         self.area_boss = montar_area_boss(nome, marcadores["area_boss"])
+@@ -159,6 +162,7 @@ def criar_boss(setor):
+     boss = CLASSE_BOSS(x=col * T + (T - molde.rect.width) // 2,
+                        y=(linha + 1) * T - molde.rect.height)
+     boss.conectar(setor.world, pygame.Rect(0, 0, setor.largura_px, setor.altura_px))
++    boss.zona_luta = setor.area_boss["rect"].copy()   # saltos e chuva ficam aqui dentro
+     boss.direcao = -1   # começa olhando para a entrada da arena
+     return boss
+ 
+diff --git a/testes/rodar_todos.py b/testes/rodar_todos.py
+index 95d2670..cce2135 100644
+--- a/testes/rodar_todos.py
++++ b/testes/rodar_todos.py
+@@ -34,6 +34,8 @@ TESTES = [
+     ("teste_estatisticas.py", "SQLite e relatório PDF"),
+     ("teste_boss_projetil.py", "ciclo de arremessos e derrota do boss"),
+     ("teste_boss.py", "luta completa contra o boss"),
++    ("teste_boss_v1.py", "boss v1.0: salto de reposicao, fase 3 (chuva), anuncios, janela de punicao"),
++    ("teste_npcs.py", "NPCs: posicao, conversa (E), falas por progresso, recompensa unica"),
+     ("teste_benchmark.py", "desempenho (FPS) — comparativo"),
+ ]
+ 
+diff --git a/testes/teste_boss_v1.py b/testes/teste_boss_v1.py
+new file mode 100644
+index 0000000..37b3d68
+--- /dev/null
++++ b/testes/teste_boss_v1.py
+@@ -0,0 +1,316 @@
++"""
++Teste headless das melhorias da luta contra o Gorila (boss v1.0).
++
++Mesmo esquema de testes/teste_boss.py: código real do jogo (main.passo_da_partida)
++com relógio falso de 16 ms por frame.
++
++Cobre:
++  * fases: 1 (vida > 4), 2 (<= 4), 3 (<= 2);
++  * troca de fase: faixa de anúncio + fala; ao acordar, rugido sem ataque;
++  * SALTO DE REPOSIÇÃO: aviso antes de sair do chão; pouso no chão livre da
++    arena (nunca em plataforma, nunca fora da área de luta), longe do
++    jogador; 40 saltos com o jogador em posições sorteadas;
++  * CHUVA DE BANANAS (fase 3): aviso, cachos espaçados (sempre há vão),
++    sombra no ponto real de impacto com antecedência, dano uma vez só;
++  * JANELA DE PUNIÇÃO: minério cai do lado do jogador; atordoado não fere
++    por contato; pegar o minério tira vida extra; some se não for pego;
++  * HUD: contador de minérios, anúncio e balão desenhados sem erro;
++  * luta completa com um bot que aproveita a janela de punição.
++
++Uso (na raiz do projeto):  python testes/teste_boss_v1.py
++"""
++import os
++import random
++import sys
++import tempfile
++
++os.environ["SDL_VIDEODRIVER"] = "dummy"
++os.environ["SDL_AUDIODRIVER"] = "dummy"
++PASTA_TMP = tempfile.mkdtemp(prefix="isa_teste_boss_v1_")
++os.environ["ISA_DB"] = os.path.join(PASTA_TMP, "estatisticas.db")
++RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++sys.path.insert(0, RAIZ)
++os.chdir(RAIZ)
++
++import pygame  # noqa: E402
++
++_agora = [10_000]
++pygame.time.get_ticks = lambda: _agora[0]
++
++import constants  # noqa: E402
++import main as M  # noqa: E402
++from src.enemies.boss import CachoCaindo, ProjetilGorila  # noqa: E402
++from src.joystick import GerenciadorJoystick  # noqa: E402
++
++T = constants.TILE_SIZE
++DT = 16
++random.seed(7)
++
++
++def ok(msg):
++    print("ok:", msg)
++
++
++def frame(n=1):
++    for _ in range(n):
++        _agora[0] += DT
++        M.passo_da_partida(DT)
++        if M.estado_jogo in ("JOGANDO", "PAUSADO"):
++            M.desenhar_jogo((0, 0))
++
++
++def esperar(cond, limite=2000):
++    for _ in range(limite):
++        if cond():
++            return True
++        frame()
++    return False
++
++
++def preparar():
++    pygame.init()
++    M.configurar_janela()
++    M.clock = pygame.time.Clock()
++    M.gamepad = GerenciadorJoystick()
++    M.recriar_ui()
++    M.iniciar_jogo()
++    M.estado_jogo = "JOGANDO"
++    M.ativar_setor("arena")
++
++
++def colocar_player(x_px):
++    p = M.player
++    p.rect.centerx = int(x_px)
++    p.rect.bottom = M.boss.chao_y or M.boss.rect.bottom
++    p.pos_x, p.pos_y = float(p.rect.x), float(p.rect.y)
++    p.vel_y = 0
++    M.reiniciar_movimento()
++
++
++def luta_ativa():
++    """Entra na área, espera a aparição e deixa o boss em COMBATE."""
++    colocar_player(M.area_boss["rect"].left + T)
++    frame()
++    assert esperar(lambda: M.boss.estado == "COMBATE", 300)
++
++
++def manter_vivo():
++    if M.player:
++        M.player.player_health = constants.PLAYER_HEALTH
++        M.player.alive = True
++
++
++def teste_fases():
++    b = M.boss
++    for vida, fase in ((8, 1), (5, 1), (4, 2), (3, 2), (2, 3), (1, 3)):
++        b.vida = vida
++        assert b.fase == fase, (vida, b.fase)
++    b.vida = b.VIDA_MAX
++    ok("fases: 1 (vida 5-8), 2 (3-4), 3 (1-2)")
++
++
++def teste_troca_de_fase_anuncio_e_rugido():
++    b = M.boss
++    b.vida = 5
++    b.levar_minerio()                   # 5 -> 4: fase 2
++    assert b.fase == 2 and b.estado == "ATORDOADO"
++    assert b.anuncio and "FASE 2" in b.anuncio[0], b.anuncio
++    assert b.fala and "irritou" in b.fala[0]
++    M.desenhar_jogo((0, 0))             # HUD com anúncio, contador e balão
++    assert esperar(lambda: b.estado == "COMBATE", constants.GORILA_ATORDOADO_MS // DT + 20)
++    inicio = _agora[0]
++    # durante o rugido: nada de arremesso, pancada ou salto
++    while _agora[0] - inicio < constants.GORILA_RUGIDO_FASE_MS - 3 * DT:
++        frame()
++        manter_vivo()
++        assert not b.preparando and not b.pancada and not b.salto, "atacou durante o rugido"
++    ok("troca de fase: faixa 'FASE 2', fala, e rugido sem ataque ao acordar")
++
++
++def _valida_pouso(b):
++    T_ = T
++    zona = b.zona_luta
++    assert b.on_ground and b.rect.bottom == b.chao_y, ("pousou fora do chao", b.rect, b.chao_y)
++    assert zona.left <= b.rect.left and b.rect.right <= zona.right, ("fora da area", b.rect, zona)
++    batendo = [o for o in b.obstaculos_proximos(b.rect) if o.colliderect(b.rect)]
++    assert not batendo, ("dentro de bloco", batendo)
++    return b.rect.centerx
++
++
++def teste_salto_de_reposicao():
++    b = M.boss
++    b.vida = b.VIDA_MAX
++    b.estado, b.pancada, b.chuva, b.preparando = "COMBATE", None, None, None
++    zona = b.zona_luta
++    pousos = set()
++    for _ in range(40):
++        manter_vivo()
++        px_ = random.randrange(zona.left + T, zona.right - T)
++        colocar_player(px_)
++        b._arremessos_desde_salto = 99
++        b.proximo_ataque = _agora[0] + 10_000      # só o salto interessa
++        b.preparando = None
++        if not esperar(lambda: b.salto is not None, 60):
++            # nenhum ponto a >= 4 tiles do jogador: o boss segue sem saltar
++            continue
++        alvo = b.salto["alvo_x"]
++        inicio = _agora[0]
++        assert b.salto["etapa"] == "aviso" and b.on_ground
++        assert abs(alvo - M.player.rect.centerx) >= constants.GORILA_SALTO_DIST_PLAYER * T
++        assert esperar(lambda: b.rect.bottom < b.chao_y, 120), "nao saiu do chao"
++        assert _agora[0] - inicio >= constants.GORILA_SALTO_AVISO_MS - DT, "saltou sem aviso"
++        assert esperar(lambda: b.salto is None, 200), "nao pousou"
++        x = _valida_pouso(b)
++        assert abs(x - alvo) <= 2, (x, alvo)
++        pousos.add(x // T)
++    assert len(pousos) >= 4, f"saltos pouco variados: {sorted(pousos)}"
++    ok(f"salto de reposicao: aviso antes, pouso no chao livre, longe do jogador "
++       f"({len(pousos)} pontos de pouso diferentes em 40 saltos)")
++
++
++def teste_chuva_de_bananas():
++    b = M.boss
++    b.vida = 2
++    assert b.fase == 3
++    b.estado, b.pancada, b.salto, b.preparando = "COMBATE", None, None, None
++    b.proxima_pancada = _agora[0] + 60_000
++    b.proxima_chuva = _agora[0]
++    b._arremessos_desde_salto = 0
++    colocar_player(b.zona_luta.left + 2 * T)
++    manter_vivo()
++    assert esperar(lambda: b.chuva is not None, 60), "fase 3 sem chuva"
++    inicio = _agora[0]
++    assert esperar(lambda: b.cachos, 200), "chuva sem cachos"
++    assert _agora[0] - inicio >= constants.GORILA_CHUVA_AVISO_MS - DT, "chuva sem aviso"
++    criados = _agora[0]
++    xs = sorted(c.rect.centerx for c in b.cachos)
++    assert len(xs) >= 6
++    gaps = [b_ - a for a, b_ in zip(xs, xs[1:])]
++    assert min(gaps) >= constants.GORILA_CHUVA_ESPACO_TILES * T - 1, gaps
++    for c in b.cachos:
++        col = c.rect.centerx // T
++        assert M.world._solidos[c.y_chao // T][col] is not None, "sombra fora do chao"
++    # antecedência: tempo entre a sombra aparecer e o primeiro impacto
++    impactos = {}
++    restantes = list(b.cachos)
++    for _ in range(300):
++        frame()
++        manter_vivo()
++        for c in list(restantes):
++            if c not in b.cachos:
++                impactos[id(c)] = _agora[0]
++                restantes.remove(c)
++        if not restantes:
++            break
++    antecedencia = min(impactos.values()) - criados
++    assert antecedencia >= 900, f"sombra com pouca antecedencia ({antecedencia} ms)"
++    # dano uma vez só
++    cacho = CachoCaindo(M.player.rect.centerx, M.player.rect.top + 12, b.chao_y, 0)
++    M.player.invulnerable = False
++    vida = M.player.player_health
++    cacho.update(M.player, _agora[0])
++    cacho.update(M.player, _agora[0])
++    assert M.player.player_health == vida - constants.GORILA_CHUVA_DANO
++    M.player.invulnerable = False
++    ok(f"chuva de bananas: aviso, {len(xs)} cachos com >= {constants.GORILA_CHUVA_ESPACO_TILES} "
++       f"tiles de vao, sombra no chao real {antecedencia} ms antes do impacto, dano unico")
++
++
++def _minerio_no_player():
++    b = M.boss
++    p = ProjetilGorila(b, M.player.rect.centerx + 60, M.player.rect.centery, -8, 0, "cobre")
++    b.projeteis.append(p)
++    assert esperar(lambda: M.estado_jogo == "QUIZ", 60)
++    M.processar_resposta(M.pergunta_em_jogo()["resposta"])
++    assert esperar(lambda: b.estado == "ATORDOADO", 600), "nao atordoou"
++
++
++def teste_janela_de_punicao():
++    b = M.boss
++    b.vida = b.VIDA_MAX
++    b.anuncio = None
++    b.estado, b.pancada, b.salto, b.chuva, b.preparando = "COMBATE", None, None, None, None
++    b.cachos = []
++    colocar_player(b.rect.centerx - 6 * T)
++    vida_boss = b.vida
++    _minerio_no_player()
++    assert b.vida == vida_boss - 1
++    caido = b.minerio_caido
++    assert caido is not None and caido.estado == "no_chao"
++    assert caido.rect.bottom == b.chao_y, "minerio nao caiu no chao"
++    assert caido.rect.centerx < b.rect.centerx, "minerio caiu do lado oposto ao jogador"
++    frame(2)
++    assert "PEGUE" in M.aviso_jogo[0], M.aviso_jogo
++    # atordoado não fere por contato
++    M.player.invulnerable = False
++    vida = M.player.player_health
++    M.player.rect.center = b.rect.center
++    assert not b.check_player_collision(M.player) and M.player.player_health == vida
++    # pega o minério -> dano extra
++    M.player.rect.midbottom = caido.rect.midbottom
++    M.player.pos_x, M.player.pos_y = float(M.player.rect.x), float(M.player.rect.y)
++    assert esperar(lambda: b.vida == vida_boss - 2, 120), "minerio caido nao causou dano extra"
++    assert b.minerio_caido is None and "extra" in M.aviso_jogo[0].lower()
++    assert esperar(lambda: b.estado == "COMBATE", constants.GORILA_ATORDOADO_MS // DT + 20)
++    # não pego: some ao acordar
++    colocar_player(b.rect.centerx - 7 * T)
++    _minerio_no_player()
++    assert b.minerio_caido is not None
++    assert esperar(lambda: b.estado == "COMBATE", constants.GORILA_ATORDOADO_MS // DT + 20)
++    assert b.minerio_caido is None, "minerio caido nao sumiu ao acordar"
++    ok("janela de punicao: minerio cai do lado do jogador, atordoado nao fere, "
++       "pegar tira 1 vida extra, some se nao for pego")
++
++
++def teste_luta_completa_com_punicao():
++    """Bot: responde certo, pega o minério caído, mantém a vida; mede o ritmo."""
++    from src.enemies.boss import Gorila
++    bonus = [0]
++    original = Gorila.levar_minerio_bonus
++
++    def contar(self):
++        bonus[0] += 1
++        original(self)
++    Gorila.levar_minerio_bonus = contar
++    try:
++        M.reiniciar_luta_boss()
++        luta_ativa()
++        inicio = _agora[0]
++        perguntas = 0
++        fases_vistas = set()
++        for _ in range(60 * 60 * 6):
++            if M.estado_jogo == "VITORIA":
++                break
++            b = M.boss
++            if M.estado_jogo == "QUIZ" and M.quiz_boss:
++                M.processar_resposta(M.pergunta_em_jogo()["resposta"])
++                perguntas += 1
++            elif b is not None and b.minerio_caido is not None and b.minerio_caido.estado == "no_chao":
++                M.player.rect.midbottom = b.minerio_caido.rect.midbottom
++                M.player.pos_x, M.player.pos_y = float(M.player.rect.x), float(M.player.rect.y)
++            if b is not None:
++                fases_vistas.add(b.fase)
++            manter_vivo()
++            frame()
++    finally:
++        Gorila.levar_minerio_bonus = original
++    assert M.estado_jogo == "VITORIA", "luta nao terminou"
++    duracao = (_agora[0] - inicio) / 1000
++    assert fases_vistas >= {1, 2, 3}, fases_vistas
++    assert perguntas + bonus[0] * constants.GORILA_DANO_BONUS == Gorila.VIDA_MAX, (perguntas, bonus[0])
++    assert perguntas >= Gorila.VIDA_MAX // 2, "vitoria sem perguntas suficientes"
++    ok(f"luta completa com punicao: VITORIA em {duracao:.0f} s de jogo; {perguntas} perguntas "
++       f"+ {bonus[0]} minerios caidos devolvidos; fases {sorted(fases_vistas)}")
++
++
++if __name__ == "__main__":
++    preparar()
++    luta_ativa()
++    teste_fases()
++    teste_troca_de_fase_anuncio_e_rugido()
++    teste_salto_de_reposicao()
++    teste_chuva_de_bananas()
++    teste_janela_de_punicao()
++    teste_luta_completa_com_punicao()
++    M.banco_estatisticas.fechar()
++    print("TODOS OS TESTES DO BOSS v1.0 PASSARAM")
+diff --git a/testes/teste_npcs.py b/testes/teste_npcs.py
+new file mode 100644
+index 0000000..e09d14c
+--- /dev/null
++++ b/testes/teste_npcs.py
+@@ -0,0 +1,201 @@
++"""
++Teste headless dos NPCs (src/npcs.py + assets/levels/npcs.json).
++
++Roda o MESMO código do jogo (main.atualizar_jogando / desenhar_jogo).
++Cobre: dados e sprites carregam; posicionamento válido (chão, longe de
++passagens e minérios); conversa com E avança e fecha; afastar fecha;
++passagem ao alcance tem prioridade; falas mudam com o progresso
++(minérios coletados, setor visitado); recompensa (maçã) é entregue uma
++única vez e cai em chão alcançável; desenho do aviso, do balão e da caixa.
++
++Uso (na raiz do projeto):  python testes/teste_npcs.py
++"""
++import os
++import sys
++import tempfile
++
++os.environ["SDL_VIDEODRIVER"] = "dummy"
++os.environ["SDL_AUDIODRIVER"] = "dummy"
++os.environ.setdefault("ISA_DB", os.path.join(tempfile.mkdtemp(prefix="isa_teste_npc_"), "e.db"))
++RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++sys.path.insert(0, RAIZ)
++os.chdir(RAIZ)
++
++import pygame  # noqa: E402
++
++import constants  # noqa: E402
++import main as M  # noqa: E402
++from src.joystick import GerenciadorJoystick  # noqa: E402
++from src.npcs import validar_npcs  # noqa: E402
++from utils import carregar_nivel_csv  # noqa: E402
++
++T = constants.TILE_SIZE
++
++
++def ok(msg):
++    print("ok:", msg)
++
++
++def preparar():
++    pygame.init()
++    M.configurar_janela()
++    M.clock = pygame.time.Clock()
++    M.gamepad = GerenciadorJoystick()
++    M.recriar_ui()
++    M.iniciar_jogo()
++    M.estado_jogo = "JOGANDO"
++
++
++def frame(n=1, apertar=False):
++    for i in range(n):
++        M.interagir_pressionado = apertar and i == 0
++        M.atualizar_jogando(16)
++        M.desenhar_jogo((0, 0))
++    M.interagir_pressionado = False
++
++
++def junto_de(npc, dx_tiles=0.8):
++    p = M.player
++    p.rect.midbottom = (npc.rect.centerx - int(dx_tiles * T), npc.rect.bottom)
++    p.pos_x, p.pos_y = float(p.rect.x), float(p.rect.y)
++    p.vel_y = 0
++    M.reiniciar_movimento()
++    M.atualizar_camera(instantaneo=True)
++
++
++def npc(setor, ident):
++    M.ativar_setor(setor)
++    return next(n for n in M.setor_atual.npcs.itens if n.id == ident)
++
++
++def teste_dados_e_posicionamento():
++    total = 0
++    for nome, setor in M.setores.items():
++        grade = carregar_nivel_csv(os.path.join(constants.PASTA_SETORES, f"{nome}.csv"))
++        problemas = validar_npcs(nome, grade, setor.npcs.itens)
++        assert not problemas, problemas
++        for n in setor.npcs.itens:
++            assert len(n.frames) == 3 and n.frames[0].get_height() >= 60, (n.id, n.frames[0].get_size())
++        total += len(setor.npcs)
++    assert total == 5, total
++    assert {n.id for s in M.setores.values() for n in s.npcs.itens} == \
++        {"taina", "benedito", "ana", "lia", "diretor"}
++    ok(f"{total} NPCs carregados; todos no chao, longe de passagens/chegadas e minerios")
++
++
++def teste_conversa_avanca_e_fecha():
++    t = npc("floresta", "taina")
++    junto_de(t)
++    frame()
++    assert M.npc_ao_alcance is t, "NPC nao detectado ao alcance"
++    frame(apertar=True)
++    assert M.dialogo and M.dialogo["npc"] is t and M.dialogo["i"] == 0
++    n = len(M.dialogo["linhas"])
++    assert n == 4 and "Taina" in M.dialogo["linhas"][0]
++    for i in range(1, n):
++        frame(apertar=True)
++        assert M.dialogo["i"] == i
++    frame(apertar=True)
++    assert M.dialogo is None, "conversa nao fechou no fim"
++    # afastar fecha
++    frame(apertar=True)
++    assert M.dialogo is not None
++    junto_de(t, dx_tiles=6)
++    frame()
++    assert M.dialogo is None, "conversa nao fechou ao se afastar"
++    ok("E abre, avanca linha a linha e fecha; afastar-se fecha a conversa")
++
++
++def teste_falas_mudam_com_progresso():
++    t = npc("floresta", "taina")
++    junto_de(t)
++    guardados = list(M.setor_atual.itens)
++    del M.setor_atual.itens[:4]            # 4 minérios "coletados"
++    try:
++        frame()
++        assert t.tem_novidade(M.contexto_npcs()), "novidade nao sinalizada"
++        frame(apertar=True)
++        assert "4 de" in M.dialogo["linhas"][0], M.dialogo["linhas"][0]
++        M.dialogo = None
++    finally:
++        M.setor_atual.itens[:] = guardados
++    b = npc("floresta", "benedito")
++    junto_de(b)
++    frame(apertar=True)
++    primeira = M.dialogo["linhas"][0]
++    M.dialogo = None
++    M.setores_visitados.add("caverna")
++    frame(apertar=True)
++    assert M.dialogo["linhas"][0] != primeira and "caverna" in M.dialogo["linhas"][0].lower()
++    M.dialogo = None
++    M.setores_visitados.discard("caverna")
++    ok("falas mudam com minerios coletados e com o setor visitado; '!' de novidade")
++
++
++def teste_recompensa_unica():
++    a = npc("caverna", "ana")
++    junto_de(a)
++    curas_antes = len(M.curas)
++    frame(apertar=True)                    # sem minérios: só falas
++    assert len(M.curas) == curas_antes and not a.recompensa_entregue
++    M.dialogo = None
++    guardados = list(M.setor_atual.itens)
++    del M.setor_atual.itens[:8]
++    try:
++        frame(apertar=True)
++        assert a.recompensa_entregue and len(M.curas) == curas_antes + 1, "maca nao entregue"
++        assert "maca" in M.dialogo["linhas"][0].lower()
++        maca = M.curas[-1]
++        # a maçã cai em chão: tem bloco sólido logo abaixo
++        col = maca.rect.centerx // T
++        assert M.world._solidos[maca.rect.bottom // T][col] is not None, "maca sem chao"
++        M.dialogo = None
++        frame(apertar=True)
++        assert len(M.curas) == curas_antes + 1, "recompensa entregue duas vezes"
++        M.dialogo = None
++        M.player.player_health = 20
++        M.player.rect.center = maca.rect.center
++        M._verificar_coletas()
++        assert M.player.player_health == 20 + constants.ITEM_CURA_VIDA
++    finally:
++        M.setor_atual.itens[:] = guardados
++        M.player.player_health = constants.PLAYER_HEALTH
++    ok("recompensa: maca entregue uma unica vez, em chao alcancavel, e cura")
++
++
++def teste_passagem_tem_prioridade():
++    M.ativar_setor("floresta")
++    passagem = M.passagens_cenario.itens[0]
++    t = M.setor_atual.npcs.itens[0]
++    guarda = (t.rect.copy(), t.coluna)
++    t.rect.midbottom = passagem.rect.midbottom          # NPC "em cima" da passagem
++    M.player.rect.midbottom = passagem.rect.midbottom
++    M.player.pos_x, M.player.pos_y = float(M.player.rect.x), float(M.player.rect.y)
++    M._checar_passagens()
++    M._checar_npcs()
++    assert M.passagem_ao_alcance is not None and M.npc_ao_alcance is None
++    t.rect, t.coluna = guarda
++    M.transicao.ativa = False
++    ok("passagem ao alcance tem prioridade sobre a conversa")
++
++
++def teste_diretor_usa_arte_existente():
++    d = npc("copas", "diretor")
++    assert d.frames[0].get_height() == 72
++    junto_de(d)
++    frame(apertar=True)
++    assert M.dialogo and "minerios" in " ".join(M.dialogo["linhas"])
++    M.desenhar_jogo((0, 0))
++    M.dialogo = None
++    ok("Diretor (arte S7 das cutscenes) conversa com o total de minerios da partida")
++
++
++if __name__ == "__main__":
++    preparar()
++    teste_dados_e_posicionamento()
++    teste_conversa_avanca_e_fecha()
++    teste_falas_mudam_com_progresso()
++    teste_recompensa_unica()
++    teste_passagem_tem_prioridade()
++    teste_diretor_usa_arte_existente()
++    print("TODOS OS TESTES DE NPC PASSARAM")
+-- 
+2.43.0
+

@@ -1,4 +1,4 @@
-# I.S.A. v1.0/v1.1: NPCs, nova luta contra o Gorila e arena em ruínas
+# I.S.A. v1.0 a v1.2: NPCs, nova luta contra o Gorila e arena em ruínas
 
 Base: a v0.9 (mapas polidos; ver `../isa-redesign-mapas/`). Os mapas não
 mudaram. Copie `ISA_candidata_polida/` por cima do projeto v0.9.
@@ -45,9 +45,10 @@ jogo (`imagens/npcs_pixel_art.png`). O Diretor usa a arte original da equipe.
   - rugido sem ataque ao acordar depois da troca de fase;
   - estrelas no atordoamento;
   - **MINERIOS DEVOLVIDOS X/8** na HUD.
-- **Janela de punição:** atordoado, ele derruba um minério do lado do jogador.
-  Pegar o minério dá 1 de dano extra, e o Gorila atordoado não machuca por
-  contato.
+- **8 perguntas obrigatórias (v1.2):** cada minério devolvido com resposta certa
+  tira 1 de vida e o Gorila tem 8. A janela de punição (minério caído que dá
+  dano extra) ficou no código, mas **desligada** (`GORILA_DANO_BONUS = 0`).
+  Atordoado, o Gorila não machuca por contato.
 - **Correção encontrada pelos testes novos:** o `on_ground` do Gorila oscilava
   a cada frame parado no chão. Isso também atrasava o salto-pancada original.
 
@@ -70,23 +71,26 @@ inteira passou 21/21.
 
 ## Pendências
 
-1. **Decisão pedagógica:** com a janela de punição, quem a aproveita sempre
-   vence com **4 perguntas** em vez de 8 (medido). Se a luta precisa de 8
-   perguntas obrigatórias, aumente `GORILA_VIDA` (12–16) ou reduza o bônus.
-   Detalhes em `docs/NPCS_E_BOSS.md`.
+1. ~~Decisão pedagógica~~ **resolvida na v1.2**: a vitória exige as 8 perguntas
+   (teste da luta completa confirma 8 respostas até a vitória).
 2. **Sem partida manual.** Tudo foi validado por testes automáticos e capturas
    do loop real; vale jogar a luta e conversar com os NPCs.
 3. A arte nova dos NPCs é minha: revisem se ela combina com o que a equipe quer.
 
 ---
 
-# v1.1: arena em ruínas
+# v1.1/v1.2: arena em ruínas
 
 A arena do Gorila virou um **santuário em ruínas tomado pela floresta**:
 colunas de pedra quebradas e cobertas de musgo, um arco partido, muralha
 desmoronando, cipós e copas invadindo pelo alto, noite fria e enevoada com
 lua pálida e vaga-lumes. **Sem vermelho**: paleta de azul-acinzentado e
 verde-musgo. A geometria da luta não mudou.
+
+**v1.2, pouca decoração** (pedido da equipe): o musgo fica na própria pedra.
+De enfeite sobram duas colunas quebradas, o pórtico da saída e os dois
+obeliscos com braseiro; a copa no alto virou só um beiral e há 6 vaga-lumes.
+O arco partido continua sendo gerado, mas está fora da arena.
 
 | Arquivo | |
 |---|---|
@@ -105,10 +109,11 @@ luminância média do Gorila 46 contra 75 na faixa da luta.
 
 - O palco (colunas 16–32) fica sem decoração.
 - As luzes quentes são só os dois braseiros nos obeliscos, que emolduram a luta.
+- Para levar tudo ao repositório dos amigos: `../isa-integracao-amigos/`.
 - O fundo antigo `pro_arena_fundo.png` continua na pasta. Para voltar, basta
   trocar `camadas` em `constants.AMBIENTES["arena"]`.
 
-**Testes (`testes_v1.1.txt`):** 21/21 aprovados. Também passaram
+**Testes (`testes_v1.1.txt` e `testes_v1.2.txt`):** 21/21 aprovados nas duas versões. Também passaram
 `validar_dados.py` (0/0), a física real da arena (0 erros) e o auditor. O
 `build.py` da arena regenera os mesmos bytes.
 
